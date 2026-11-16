@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Build output
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Local internal documentation & scripts (kept local, exclude from GitHub)
+require.md
+DEPLOYMENT_GUIDE.md
+README_SETUP.md
+push_to_github.bat
+
+# Firebase service account key (never commit)
+serviceAccountKey.json

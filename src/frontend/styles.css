@@ -1,0 +1,410 @@
+/* ==========================================================================
+   Mini Pancake - Stylesheet
+   Multi-channel Sales Management SPA (React + Tailwind CSS)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Custom Scrollbar Styling (.scrollbar-thin)
+   -------------------------------------------------------------------------- */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+   2. Chat Bubbles (.bubble-customer, .bubble-employee)
+   -------------------------------------------------------------------------- */
+.bubble-customer {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  padding: 0.625rem 0.875rem;
+  max-width: 78%;
+  align-self: flex-start;
+  margin-right: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  word-break: break-word;
+  position: relative;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.bubble-employee {
+  background-color: #4f46e5;
+  color: #ffffff;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  padding: 0.625rem 0.875rem;
+  max-width: 78%;
+  align-self: flex-end;
+  margin-left: auto;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+  word-break: break-word;
+  position: relative;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.bubble-customer a,
+.bubble-employee a {
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.bubble-customer a {
+  color: #3b82f6;
+}
+
+.bubble-employee a {
+  color: #e0e7ff;
+}
+
+/* --------------------------------------------------------------------------
+   3. Keyframe Animations & Animation Classes
+   -------------------------------------------------------------------------- */
+/* Pulse badge animation for unread counters */
+@keyframes pulse-badge {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  70% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.pulse-badge,
+.badge-pulse {
+  animation: pulse-badge 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Slide-in animation for incoming messages / panels */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slide-in 0.22s ease-out forwards;
+}
+
+/* Fade-in transition */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in,
+.animate-fadeIn {
+  animation: fade-in 0.2s ease-in-out forwards;
+}
+
+/* --------------------------------------------------------------------------
+   4. Message Input Styling (.message-input)
+   -------------------------------------------------------------------------- */
+.message-input {
+  resize: none;
+  min-height: 42px;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.45;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.9375rem;
+}
+
+.message-input:focus {
+  outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   5. Avatar Styles for Initials Circles (.avatar)
+   -------------------------------------------------------------------------- */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  user-select: none;
+  overflow: hidden;
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.avatar-xs {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.6875rem;
+}
+
+.avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.75rem;
+}
+
+.avatar-md {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+}
+
+.avatar-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.125rem;
+}
+
+.avatar-indigo {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.avatar-emerald {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.avatar-amber {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.avatar-rose {
+  background-color: #ffe4e6;
+  color: #9f1239;
+}
+
+.avatar-blue {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* --------------------------------------------------------------------------
+   6. Channel Badges for FB/TikTok/Zalo (.channel-badge)
+   -------------------------------------------------------------------------- */
+.channel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 9999px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  flex-shrink: 0;
+}
+
+.channel-badge.facebook,
+.channel-badge.channel-fb {
+  background-color: #1877f2;
+  color: #ffffff;
+}
+
+.channel-badge.tiktok,
+.channel-badge.channel-tiktok {
+  background-color: #010101;
+  color: #ffffff;
+}
+
+.channel-badge.zalo,
+.channel-badge.channel-zalo {
+  background-color: #0068ff;
+  color: #ffffff;
+}
+
+.channel-badge.direct,
+.channel-badge.channel-direct {
+  background-color: #64748b;
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   7. Hover Effects (.conversation-card:hover, .product-card:hover)
+   -------------------------------------------------------------------------- */
+.conversation-card {
+  transition: all 0.18s ease-in-out;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.conversation-card:hover {
+  background-color: #f8fafc;
+  transform: translateX(2px);
+}
+
+.conversation-card.active {
+  background-color: #eef2ff;
+  border-left-color: #4f46e5;
+}
+
+.product-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.product-card:hover {
+  border-color: #818cf8;
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.12),
+              0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* --------------------------------------------------------------------------
+   8. Loading Spinner (.spinner)
+   -------------------------------------------------------------------------- */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinner-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 2rem;
+  height: 2rem;
+  border-width: 3px;
+}
+
+.spinner-primary {
+  border-color: #e0e7ff;
+  border-top-color: #4f46e5;
+}
+
+.spinner-slate {
+  border-color: #e2e8f0;
+  border-top-color: #64748b;
+}
+
+/* --------------------------------------------------------------------------
+   9. Toast Notifications (.toast, .toast-container)
+   -------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  max-width: 90vw;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+              0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  animation: slide-in 0.22s ease-out;
+  color: #ffffff;
+  min-width: 260px;
+}
+
+.toast-success {
+  background-color: #059669;
+}
+
+.toast-error {
+  background-color: #dc2626;
+}
+
+.toast-info {
+  background-color: #2563eb;
+}
+
+.toast-warning {
+  background-color: #d97706;
+}
+
+/* --------------------------------------------------------------------------
+   10. Mobile Breakpoint Styles (@media max-width: 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .bubble-customer,
+  .bubble-employee {
+    max-width: 86%;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 4.5rem;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .toast {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .mobile-tab-btn {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .mobile-panel {
+    height: calc(100vh - 7rem);
+  }
+}

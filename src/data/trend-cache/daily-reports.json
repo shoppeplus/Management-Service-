@@ -1,0 +1,154 @@
+[
+  {
+    "id": "report_2026-11-15_1794716793214",
+    "date": "2026-11-15",
+    "summary": "Thị trường bán lẻ trực tuyến hôm nay chứng kiến nhu cầu làm đồ ăn vặt và bánh tại nhà tiếp tục tăng cao vượt trội. Sản phẩm \"Máy làm bánh mini pancake đa năng\" và \"Bột làm bánh mini pancake mềm mịn pha sẵn thơm vani gói 1kg\" giữ vị trí dẫn đầu bảng xếp hạng lượt tìm kiếm và tốc độ bán ra trên Shopee và TikTok Shop. Ngành hàng gia dụng mini thông minh và thực phẩm tiện lợi duy trì đà tăng trưởng ấn tượng.",
+    "topTrends": [
+      {
+        "name": "Máy làm bánh mini pancake đa năng",
+        "reason": "Làn sóng các video ngắn hướng dẫn làm bánh pancake ăn sáng và ăn vặt tại nhà thu hút hàng triệu lượt xem trên TikTok, kích thích nhu cầu mua sắm thiết bị bếp mini.",
+        "confidence": 0.95,
+        "recommendedAction": "Duy trì tồn kho an toàn, đóng gói combo kèm phụ kiện và bột làm bánh để tối ưu giá trị giỏ hàng (AOV)."
+      },
+      {
+        "name": "Bột làm bánh mini pancake mềm mịn pha sẵn thơm vani gói 1kg",
+        "reason": "Sản phẩm tiêu dùng kèm thiết yếu, tần suất mua lại cao (2-3 lần/tháng), biên độ lợi nhuận gộp tốt khi bán số lượng lớn.",
+        "confidence": 0.92,
+        "recommendedAction": "Nhập số lượng lớn từ nhà cung cấp sỉ hoặc đóng gói thương hiệu riêng để nâng biên lợi nhuận lên trên 50%."
+      },
+      {
+        "name": "Tai nghe Bluetooth không dây chống ồn chủ động ANC",
+        "reason": "Nhu cầu học tập, giải trí và làm việc văn phòng tăng; mức giá phổ thông dưới 500k đạt tỷ lệ chốt đơn cao.",
+        "confidence": 0.88,
+        "recommendedAction": "Tập trung chạy flash sale các khung giờ trưa và tối."
+      },
+      {
+        "name": "Áo polo nam dệt kim waffle phong cách Hàn Quốc",
+        "reason": "Chất liệu vải waffle thoáng mát, form rộng unisex được giới trẻ ưa chuộng trên sàn TikTok Shop.",
+        "confidence": 0.87,
+        "recommendedAction": "Quay vòng vốn nhanh, hạn chế ôm hàng quá 3 tuần để tránh rủi ro đổi trend thời trang."
+      }
+    ],
+    "categoryInsights": [
+      {
+        "category": "Thực phẩm & Đồ ăn vặt",
+        "status": "Tăng trưởng đột phá (+38%)",
+        "prediction": "Dự báo tiếp tục tăng mạnh trong tuần tới nhờ nhu cầu tiêu dùng tiện lợi và xu hướng F&B tại nhà."
+      },
+      {
+        "category": "Đồ gia dụng & Đời sống",
+        "status": "Tăng trưởng ổn định (+25%)",
+        "prediction": "Các thiết bị mini đa năng dưới 400.000đ giữ sức mua ổn định xuyên suốt quý."
+      },
+      {
+        "category": "Điện tử & Thiết bị số",
+        "status": "Duy trì tích cực (+18%)",
+        "prediction": "Phụ kiện di động, sạc từ tính và tai nghe không dây duy trì biên lợi nhuận cao."
+      },
+      {
+        "category": "Thời trang & Phụ kiện",
+        "status": "Ổn định (+14%)",
+        "prediction": "Đón đầu chuyển giao mùa hè sang thu với các sản phẩm dệt kim mỏng nhẹ."
+      },
+      {
+        "category": "Mỹ phẩm & Làm đẹp",
+        "status": "Cạnh tranh cao (+10%)",
+        "prediction": "Chi phí quảng cáo (CAC) ngành mỹ phẩm đang tăng, cần tập trung chăm sóc khách hàng cũ."
+      }
+    ],
+    "opportunities": [
+      {
+        "product": "Combo Khởi Nghiệp Bánh Mini Pancake (Máy nướng + 2kg bột + 2 chai sốt)",
+        "reason": "Khách hàng thích sự tiện lợi sẵn có, sẵn sàng chi thêm 30% để có trọn bộ sản phẩm hoàn chỉnh.",
+        "potentialROI": "52%",
+        "risk": "Thấp"
+      },
+      {
+        "product": "Khuôn silicon tạo hình bánh pancake hoạt hình cute",
+        "reason": "Phụ kiện nhỏ giá mềm (dưới 45.000đ) mang tính kích thích thị giác mạnh mẽ trên livestream.",
+        "potentialROI": "65%",
+        "risk": "Rất thấp"
+      }
+    ],
+    "warnings": [
+      {
+        "issue": "Chi phí vận chuyển và giá nguyên liệu đóng gói có xu hướng nhích nhẹ vào cuối tháng.",
+        "affectedCategories": [
+          "Thực phẩm & Đồ ăn vặt",
+          "Đồ gia dụng & Đời sống"
+        ],
+        "suggestion": "Đàm phán bảng giá vận chuyển cố định theo hợp đồng với đối tác GHTK và gom đơn số lượng lớn."
+      },
+      {
+        "issue": "Xuất hiện nhiều shop bán máy làm bánh giá rẻ nhưng độ bền chống dính kém.",
+        "affectedCategories": [
+          "Đồ gia dụng & Đời sống"
+        ],
+        "suggestion": "Tập trung định vị chất lượng cao cấp, tặng kèm thẻ bảo hành 6 tháng để xây dựng uy tín thương hiệu."
+      }
+    ],
+    "forecast": {
+      "predictions": [
+        {
+          "productOrCategory": "Máy làm bánh mini pancake đa năng",
+          "currentTrend": "Bùng nổ",
+          "predictedTrend": "Duy trì lượng bán đỉnh trong 10-14 ngày tới",
+          "confidence": 0.94,
+          "timeframe": "7 days",
+          "action": "stock_up"
+        },
+        {
+          "productOrCategory": "Bột làm bánh pancake pha sẵn 1kg",
+          "currentTrend": "Tăng liên tục",
+          "predictedTrend": "Nhu cầu tái mua hàng tăng theo cấp số nhân",
+          "confidence": 0.93,
+          "timeframe": "7 days",
+          "action": "stock_up"
+        },
+        {
+          "productOrCategory": "Quạt tích điện mini",
+          "currentTrend": "Đạt đỉnh",
+          "predictedTrend": "Bắt đầu hạ nhiệt nhẹ khi thời tiết sang thu mát hơn",
+          "confidence": 0.85,
+          "timeframe": "7 days",
+          "action": "watch"
+        },
+        {
+          "productOrCategory": "Quần áo hè voan mỏng sát nách",
+          "currentTrend": "Giảm sút",
+          "predictedTrend": "Lượng tìm kiếm giảm 25%, chuyển dịch sang đồ dài tay",
+          "confidence": 0.88,
+          "timeframe": "7 days",
+          "action": "reduce"
+        }
+      ],
+      "marketOutlook": "Bullish",
+      "recommendedProducts": [
+        {
+          "name": "Set Combo Mini Pancake Master",
+          "reason": "Đáp ứng toàn diện trào lưu tự làm bánh F&B của giới trẻ Gen Z",
+          "suggestedPrice": 399000,
+          "targetAudience": "Gia đình trẻ, sinh viên, người đam mê ẩm thực"
+        },
+        {
+          "name": "Bình xịt dầu ăn chống dính nướng bánh 200ml",
+          "reason": "Sản phẩm up-sell tuyệt vời cho mọi khách mua chảo hoặc máy làm bánh",
+          "suggestedPrice": 45000,
+          "targetAudience": "Khách hàng mua máy làm bánh hoặc nồi chiên không dầu"
+        }
+      ],
+      "riskyProducts": [
+        {
+          "name": "Đồ thời trang hè vải mỏng sát nách",
+          "reason": "Thời tiết chuyển mùa thu đông khiến sức mua giảm sâu",
+          "alternativeSuggestion": "Xả kho sớm với giá flash sale, chuyển vốn sang hàng dệt kim"
+        }
+      ],
+      "forecastedAt": "2026-11-15T04:26:33.211Z"
+    },
+    "itemCount": 16,
+    "createdAt": "2026-11-15T04:26:33.213Z",
+    "sentVia": "scheduled_pipeline",
+    "mode": "local_cache"
+  }
+]

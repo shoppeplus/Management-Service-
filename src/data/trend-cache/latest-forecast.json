@@ -1,0 +1,59 @@
+{
+  "predictions": [
+    {
+      "productOrCategory": "Máy làm bánh mini pancake đa năng",
+      "currentTrend": "Bùng nổ",
+      "predictedTrend": "Duy trì lượng bán đỉnh trong 10-14 ngày tới",
+      "confidence": 0.94,
+      "timeframe": "7 days",
+      "action": "stock_up"
+    },
+    {
+      "productOrCategory": "Bột làm bánh pancake pha sẵn 1kg",
+      "currentTrend": "Tăng liên tục",
+      "predictedTrend": "Nhu cầu tái mua hàng tăng theo cấp số nhân",
+      "confidence": 0.93,
+      "timeframe": "7 days",
+      "action": "stock_up"
+    },
+    {
+      "productOrCategory": "Quạt tích điện mini",
+      "currentTrend": "Đạt đỉnh",
+      "predictedTrend": "Bắt đầu hạ nhiệt nhẹ khi thời tiết sang thu mát hơn",
+      "confidence": 0.85,
+      "timeframe": "7 days",
+      "action": "watch"
+    },
+    {
+      "productOrCategory": "Quần áo hè voan mỏng sát nách",
+      "currentTrend": "Giảm sút",
+      "predictedTrend": "Lượng tìm kiếm giảm 25%, chuyển dịch sang đồ dài tay",
+      "confidence": 0.88,
+      "timeframe": "7 days",
+      "action": "reduce"
+    }
+  ],
+  "marketOutlook": "Bullish",
+  "recommendedProducts": [
+    {
+      "name": "Set Combo Mini Pancake Master",
+      "reason": "Đáp ứng toàn diện trào lưu tự làm bánh F&B của giới trẻ Gen Z",
+      "suggestedPrice": 399000,
+      "targetAudience": "Gia đình trẻ, sinh viên, người đam mê ẩm thực"
+    },
+    {
+      "name": "Bình xịt dầu ăn chống dính nướng bánh 200ml",
+      "reason": "Sản phẩm up-sell tuyệt vời cho mọi khách mua chảo hoặc máy làm bánh",
+      "suggestedPrice": 45000,
+      "targetAudience": "Khách hàng mua máy làm bánh hoặc nồi chiên không dầu"
+    }
+  ],
+  "riskyProducts": [
+    {
+      "name": "Đồ thời trang hè vải mỏng sát nách",
+      "reason": "Thời tiết chuyển mùa thu đông khiến sức mua giảm sâu",
+      "alternativeSuggestion": "Xả kho sớm với giá flash sale, chuyển vốn sang hàng dệt kim"
+    }
+  ],
+  "forecastedAt": "2026-11-15T04:26:33.211Z"
+}
