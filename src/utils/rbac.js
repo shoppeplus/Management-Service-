@@ -258,8 +258,8 @@ export const PERMISSIONS_MATRIX = {
 export function normalizeRole(role) {
   if (!role) return ROLES.SALES;
   const upper = String(role).toUpperCase();
-  if (upper === 'ADMIN') return ROLES.ADMIN;
-  if (upper === 'MANAGER') return ROLES.MANAGER;
+  if (upper === 'ADMIN' || upper === 'F0_ADMIN' || upper === 'F0') return ROLES.ADMIN;
+  if (upper === 'MANAGER' || upper === 'F1_LEAD' || upper === 'F1' || upper === 'LEAD') return ROLES.MANAGER;
   if (upper === 'CUSTOMER_CARE' || upper === 'CSKH') return ROLES.CUSTOMER_CARE;
   return ROLES.SALES;
 }

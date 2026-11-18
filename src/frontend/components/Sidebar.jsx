@@ -1,36 +1,76 @@
 /**
  * Sidebar Component (SmartSales Unified Navigation)
  * ────────────────────────────────────────────────
- * Matches Image 01, Image 02, and Image 03:
- * - Brand: SmartSales with modern blue 'S' icon
- * - Navigation links with icons and active pill state:
- *   1. 🏠 Tổng quan (overview)
- *   2. 👥 Khách hàng (customers)
- *   3. 💬 Bán hàng / Hộp thư (inbox - badge 18)
- *   4. 📦 Đơn hàng (orders)
- *   5. 🏷️ Sản phẩm (products)
- *   6. 🤍 Chăm sóc (care)
- *   7. 📊 Báo cáo (reports)
- *   8. ⚙️ Cài đặt (settings)
- * - User Profile Pill at the bottom (Avatar 'N', Nam, Quản trị viên)
+ * Supports 3 Role Tiers:
+ * - F0: admin (Full system access: all 8 items)
+ * - F1: lead (Full access EXCEPT Overview / Tổng quan: 7 items)
+ * - F2: member (ONLY allowed: Bán hàng & Khách hàng: 2 items)
  */
 
 (function () {
   'use strict';
 
-  const { useState, useMemo } = window.React;
+  const { useMemo } = window.React;
 
-  function Sidebar({ activeNav = 'overview', onNavigate, unreadCount = 18, currentUser }) {
-    const navItems = [
-      { id: 'overview', label: 'Tổng quan', icon: 'home' },
-      { id: 'inbox', label: 'Bán hàng', icon: 'chat', badge: unreadCount },
-      { id: 'customers', label: 'Khách hàng', icon: 'users' },
-      { id: 'orders', label: 'Đơn hàng', icon: 'box' },
-      { id: 'products', label: 'Sản phẩm', icon: 'tag' },
-      { id: 'care', label: 'Chăm sóc', icon: 'heart' },
-      { id: 'reports', label: 'Báo cáo', icon: 'chart' },
-      { id: 'settings', label: 'Cài đặt', icon: 'cog' },
-    ];
+  function Sidebar({ activeNav = 'overview', onNavigate, unreadCount = 18, currentUser, onOpenSwitchAccount }) {
+    const rawNavItems = useMemo(
+      () => [
+        { id: 'overview', label: 'Tổng quan', icon: 'home' },
+        { id: 'inbox', label: 'Bán hàng', icon: 'chat', badge: unreadCount },
+        { id: 'customers', label: 'Khách hàng', icon: 'users' },
+        { id: 'orders', label: 'Đơn hàng', icon: 'box' },
+        { id: 'products', label: 'Sản phẩm', icon: 'tag' },
+        { id: 'care', label: 'Chăm sóc', icon: 'heart' },
+        { id: 'reports', label: 'Báo cáo', icon: 'chart' },
+        { id: 'settings', label: 'Cài đặt', icon: 'cog' },
+      ],
+      [unreadCount]
+    );
+
+    // Filter nav items according to the 3-tier permissions
+    const navItems = useMemo(() => {
+      if (Array.isArray(currentUser?.allowedNavs)) {
+        return rawNavItems.filter((item) => currentUser.allowedNavs.includes(item.id));
+      }
+      const role = String(currentUser?.role || '').toUpperCase();
+      if (role === 'F1_LEAD' || role === 'LEAD') {
+        // F1: Lead -> Full trừ phần tổng quan
+        return rawNavItems.filter((item) => item.id !== 'overview');
+      }
+      if (role === 'F2_MEMBER' || role === 'MEMBER') {
+        // F2: Member -> Chỉ được phép truy cập vào bán hàng và khách hàng
+        return rawNavItems.filter((item) => item.id === 'inbox' || item.id === 'customers');
+      }
+      // F0: Admin -> Full quyền
+      return rawNavItems;
+    }, [currentUser, rawNavItems]);
+
+    // Role tier label and badge
+    const tierInfo = useMemo(() => {
+      const role = String(currentUser?.role || '').toUpperCase();
+      if (role === 'F1_LEAD' || role === 'LEAD') {
+        return {
+          tier: 'F1',
+          label: 'F1 • Trưởng nhóm',
+          badgeClass: 'bg-blue-100 text-blue-700 border-blue-200',
+          avatarBg: 'bg-blue-600',
+        };
+      }
+      if (role === 'F2_MEMBER' || role === 'MEMBER') {
+        return {
+          tier: 'F2',
+          label: 'F2 • Thành viên',
+          badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          avatarBg: 'bg-emerald-600',
+        };
+      }
+      return {
+        tier: 'F0',
+        label: 'F0 • Quản trị viên',
+        badgeClass: 'bg-purple-100 text-purple-700 border-purple-200',
+        avatarBg: 'bg-purple-600',
+      };
+    }, [currentUser]);
 
     const renderIcon = (iconName) => {
       switch (iconName) {
@@ -91,23 +131,29 @@
     return (
       <aside className="w-56 h-screen bg-white border-r border-slate-200 flex flex-col justify-between flex-shrink-0 select-none shadow-xs z-30">
         {/* Top: Logo & Nav items */}
-        <div>
+        <div className="overflow-y-auto">
           {/* Logo Brand Header */}
-          <div className="h-16 px-5 flex items-center gap-2.5 border-b border-slate-100">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm shadow-blue-200">
-              {/* Stylized 'S' Logo */}
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6a4 4 0 0 0-4-2H9a4 4 0 0 0-4 4 4 4 0 0 0 4 4h6a4 4 0 0 1 4 4 4 4 0 0 1-4 4h-5a4 4 0 0 1-4-2" />
-              </svg>
+          <div className="h-16 px-5 flex items-center justify-between border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm shadow-blue-200">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6a4 4 0 0 0-4-2H9a4 4 0 0 0-4 4 4 4 0 0 0 4 4h6a4 4 0 0 1 4 4 4 4 0 0 1-4 4h-5a4 4 0 0 1-4-2" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-slate-900 text-lg tracking-tight leading-tight">
+                  SmartSales
+                </span>
+                <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
+                  Suite 2.0
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-slate-900 text-lg tracking-tight leading-tight">
-                SmartSales
-              </span>
-              <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
-                Suite 2.0
-              </span>
-            </div>
+
+            {/* Quick Tier Pill */}
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md border ${tierInfo.badgeClass}`}>
+              {tierInfo.tier}
+            </span>
           </div>
 
           {/* Navigation Items List */}
@@ -149,23 +195,33 @@
           </nav>
         </div>
 
-        {/* Bottom: User Profile Card */}
-        <div className="p-3 border-t border-slate-100">
-          <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'N'}
+        {/* Bottom: User Profile Card & Switch Account button */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+          <div
+            onClick={onOpenSwitchAccount}
+            className="flex items-center justify-between p-2 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-xs transition-all cursor-pointer group"
+            title="Bấm để chuyển đổi tài khoản F0 / F1 / F2"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className={`w-9 h-9 rounded-xl ${tierInfo.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs flex-shrink-0`}
+              >
+                {tierInfo.tier}
               </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-slate-800 leading-tight">
-                  {currentUser?.name || 'Nam'}
+              <div className="text-left min-w-0">
+                <p className="text-xs font-bold text-slate-800 leading-tight truncate">
+                  {currentUser?.name || 'Nguyễn Nam'}
                 </p>
-                <p className="text-[11px] text-slate-400">Quản trị viên</p>
+                <p className="text-[10px] text-slate-500 font-medium truncate mt-0.5">
+                  {tierInfo.label}
+                </p>
               </div>
             </div>
-            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center text-slate-400 flex-shrink-0 transition-colors">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+            </div>
           </div>
         </div>
       </aside>

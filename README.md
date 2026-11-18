@@ -84,6 +84,20 @@ Trong bối cảnh kinh doanh đa nền tảng, doanh nghiệp thường xuyên 
 
 ---
 
+## 👥 Hệ Thống Tài Khoản Đăng Nhập & Phân Quyền 3 Cấp (F0 / F1 / F2)
+
+Hệ thống hỗ trợ phân cấp 3 vai trò người dùng rõ ràng và trực quan ngay trên giao diện:
+
+| Cấp bậc | Vai trò | Quyền hạn truy cập | Tài khoản đăng nhập (Demo) |
+| :---: | :--- | :--- | :--- |
+| **F0** | **Admin (Quản trị viên)** | **Toàn quyền (Full quyền)**: Truy cập toàn bộ 8 menu (🏠 Tổng quan, 💬 Bán hàng, 👥 Khách hàng, 📦 Đơn hàng, 🏷️ Sản phẩm, 🤍 Chăm sóc, 📊 Báo cáo, ⚙️ Cài đặt). | `admin@smartsales.vn` (Pass: `admin`) |
+| **F1** | **Lead (Trưởng nhóm)** | **Full quyền TRỪ mục Tổng quan**: Truy cập 7 menu (💬 Bán hàng, 👥 Khách hàng, 📦 Đơn hàng, 🏷️ Sản phẩm, 🤍 Chăm sóc, 📊 Báo cáo, ⚙️ Cài đặt). Ẩn và khóa mục Tổng quan. | `lead@smartsales.vn` (Pass: `lead`) |
+| **F2** | **Member (Thành viên / Sales)** | **Chỉ Bán hàng & Khách hàng**: Được phép truy cập 2 menu (💬 Bán hàng và 👥 Khách hàng). Ẩn toàn bộ các mục còn lại. | `member@smartsales.vn` (Pass: `member`) |
+
+> 💡 **Tính năng chuyển đổi nhanh (Quick Switcher):** Ngay trên thanh Header và góc dưới Sidebar, người dùng có thể nhấp chuột để chuyển đổi ngay lập tức giữa F0, F1 và F2 với 1 click để kiểm tra giao diện và quyền hạn tương ứng.
+
+---
+
 ## 🔒 Bảo Mật, Phân Quyền (RBAC) & Phạm Vi Dữ Liệu
 
 Hệ thống được thiết kế theo các tiêu chuẩn phân quyền nghiêm ngặt của doanh nghiệp:
@@ -122,7 +136,7 @@ business/
     ├── data/                  # Mock data, 63 tỉnh thành, seed dữ liệu mẫu
     ├── middleware/            # Middleware kiểm tra JWT Auth, RBAC, Scoped Query
     ├── models/                # Schema & Business logic cho Khách hàng, Đơn hàng, Ticket...
-    ├── routes/                # Các Router REST API (orders, customers, chat, shipping...)
+    ├── routes/                # Các Router REST API (auth, orders, customers, chat...)
     ├── services/              # Dịch vụ ngoài: GHTK API, Webhook, AI Gemini, Email
     ├── utils/                 # Bộ tính tiền tệ VND, FSM State Machines, Security helpers
     │
@@ -132,7 +146,8 @@ business/
         ├── styles.css         # Tuỳ biến thanh cuộn, hiệu ứng badge và animation
         ├── utils/             # Tầng gọi API và bộ dữ liệu giả lập phong phú
         └── components/        # Thư viện component giao diện người dùng
-            ├── Sidebar.jsx            # Thanh điều hướng trái (Tổng quan, Bán hàng, Khách...)
+            ├── LoginModal.jsx         # Modal đăng nhập & chuyển đổi tài khoản 3 cấp F0/F1/F2
+            ├── Sidebar.jsx            # Thanh điều hướng trái phân quyền theo vai trò
             ├── Header.jsx             # Thanh tìm kiếm toàn cục, chuông thông báo & avatar
             ├── OverviewView.jsx       # Bảng điều khiển tổng quan KPI & biểu đồ
             ├── OmnichannelInbox.jsx   # Hộp thư đa kênh 3 cột với giả lập tương tác

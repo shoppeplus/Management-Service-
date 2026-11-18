@@ -28,6 +28,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 // ── Schedulers ──────────────────────────────────────
 import TrendScheduler from './services/trendScheduler.js';
@@ -55,6 +56,9 @@ app.get('/api/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// ── Auth routes (public login & account switching) ─
+app.use('/api/auth', authRoutes);
 
 // ── Webhooks (public – external services call these) ─
 app.use('/api/webhooks', webhookRoutes);

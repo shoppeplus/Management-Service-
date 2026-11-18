@@ -1,22 +1,25 @@
 /**
  * Header Component (SmartSales Unified Top Bar)
  * ──────────────────────────────────────────────
- * Matches Image 01, Image 02, and Image 03:
- * - Search bar: "Tìm kiếm khách hàng, đơn hàng, sản phẩm..."
- * - Notification bell 🔔 with unread count
- * - Weather & current greeting: "Thứ Ba, 12/03/2024 • Chào Nam! ☀️"
- * - User pill: (Avatar 'N', Nam, Quản trị viên)
+ * Supports:
+ * - Global Search
+ * - Weather & Greeting
+ * - Notifications Dropdown
+ * - User Profile Pill with Quick Account Switching (F0 Admin, F1 Lead, F2 Member)
  */
 
 (function () {
   'use strict';
 
-  const { useState, useRef, useEffect } = window.React;
+  const { useState, useRef, useEffect, useMemo } = window.React;
 
-  function Header({ currentUser, onSearch, onOpenNotifications }) {
+  function Header({ currentUser, onSearch, onOpenSwitchAccount, onSwitchAccount, onLogout }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-    const dropdownRef = useRef(null);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+    const notifRef = useRef(null);
+    const userRef = useRef(null);
 
     const notifications = [
       { id: 1, title: 'Đơn hàng mới DH009', desc: 'Nguyễn Minh Anh vừa đặt thêm phụ kiện', time: '5 phút trước', unread: true },
@@ -26,8 +29,11 @@
 
     useEffect(() => {
       function handleClickOutside(event) {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        if (notifRef.current && !notifRef.current.contains(event.target)) {
           setShowNotifDropdown(false);
+        }
+        if (userRef.current && !userRef.current.contains(event.target)) {
+          setShowUserDropdown(false);
         }
       }
       document.addEventListener('mousedown', handleClickOutside);
@@ -38,6 +44,37 @@
       e?.preventDefault();
       if (onSearch) onSearch(searchTerm);
     };
+
+    const tierBadge = useMemo(() => {
+      const role = String(currentUser?.role || '').toUpperCase();
+      if (role === 'F1_LEAD' || role === 'LEAD') {
+        return {
+          tier: 'F1',
+          label: 'F1: Lead (Trưởng nhóm)',
+          sub: 'Full quyền trừ Tổng quan',
+          color: 'bg-blue-100 text-blue-700 border-blue-200',
+          avatarBg: 'bg-blue-600',
+        };
+      }
+      if (role === 'F2_MEMBER' || role === 'MEMBER') {
+        return {
+          tier: 'F2',
+          label: 'F2: Member (Thành viên)',
+          sub: 'Chỉ Bán hàng & Khách hàng',
+          color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          avatarBg: 'bg-emerald-600',
+        };
+      }
+      return {
+        tier: 'F0',
+        label: 'F0: Admin (Quản trị viên)',
+        sub: 'Toàn quyền hệ thống',
+        color: 'bg-purple-100 text-purple-700 border-purple-200',
+        avatarBg: 'bg-purple-600',
+      };
+    }, [currentUser]);
+
+    const accountsList = window.SYSTEM_ACCOUNTS || [];
 
     return (
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-xs flex-shrink-0 z-20">
@@ -63,16 +100,33 @@
         </div>
 
         {/* Right Section: Greeting, Notification, User Pill */}
-        <div className="flex items-center gap-4">
-          {/* Weather / Date Greeting */}
-          <div className="hidden lg:flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-            <span>Thứ Ba, 12/03/2024</span>
-            <span className="text-slate-300">•</span>
-            <span className="font-medium text-slate-700">Chào Nam! ☀️</span>
+        <div className="flex items-center gap-3.5">
+          {/* Quick Account Switch Pills (Visible on larger screens) */}
+          <div className="hidden xl:flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl text-[11px] font-medium">
+            <span className="px-2 text-slate-400 font-bold">Chuyển vai trò:</span>
+            {accountsList.map((acc) => {
+              const isActive = currentUser?.uid === acc.uid;
+              return (
+                <button
+                  key={acc.uid}
+                  type="button"
+                  onClick={() => onSwitchAccount && onSwitchAccount(acc)}
+                  className={`px-2 py-1 rounded-lg font-bold text-[10px] transition-all flex items-center gap-1 ${
+                    isActive
+                      ? `${acc.badgeStyle} bg-white shadow-xs`
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
+                  title={acc.description}
+                >
+                  <span>{acc.tier}</span>
+                  <span className="hidden 2xl:inline">• {acc.roleLabel.split(':')[1]?.split('(')[0]?.trim()}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Notification Bell */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative" ref={notifRef}>
             <button
               type="button"
               onClick={() => setShowNotifDropdown(!showNotifDropdown)}
@@ -82,10 +136,10 @@
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span className="absolute 1 top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
             </button>
 
-            {/* Dropdown Menu */}
+            {/* Notification Dropdown Menu */}
             {showNotifDropdown && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-fadeIn">
                 <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
@@ -111,20 +165,118 @@
             )}
           </div>
 
-          {/* User Profile Pill */}
-          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-              {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'N'}
+          {/* User Profile Pill with Switch Dropdown */}
+          <div className="relative" ref={userRef}>
+            <div
+              onClick={() => setShowUserDropdown(!showUserDropdown)}
+              className="flex items-center gap-2.5 pl-3 py-1 pr-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all cursor-pointer"
+            >
+              <div
+                className={`w-8 h-8 rounded-xl ${tierBadge.avatarBg} text-white flex items-center justify-center font-bold text-xs shadow-xs`}
+              >
+                {tierBadge.tier}
+              </div>
+              <div className="hidden sm:block text-left">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-slate-800 leading-tight">
+                    {currentUser?.name || 'Nguyễn Nam'}
+                  </p>
+                  <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${tierBadge.color}`}>
+                    {tierBadge.tier}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-none mt-0.5">{tierBadge.label}</p>
+              </div>
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-xs font-bold text-slate-800 leading-tight">
-                {currentUser?.name || 'Nam'}
-              </p>
-              <p className="text-[10px] text-slate-400 leading-none mt-0.5">Quản trị viên</p>
-            </div>
-            <svg className="w-3.5 h-3.5 text-slate-400 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+
+            {/* User Dropdown Menu */}
+            {showUserDropdown && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 py-3 z-50 animate-fadeIn">
+                <div className="px-4 pb-3 border-b border-slate-100">
+                  <p className="text-xs font-bold text-slate-900">{currentUser?.name}</p>
+                  <p className="text-[11px] text-slate-400">{currentUser?.email}</p>
+                  <div className="mt-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-700">{tierBadge.label}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${tierBadge.color}`}>
+                        {tierBadge.tier}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">{tierBadge.sub}</p>
+                  </div>
+                </div>
+
+                {/* Quick Switch List */}
+                <div className="py-2 px-2">
+                  <p className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Đổi tài khoản đăng nhập:
+                  </p>
+                  {accountsList.map((acc) => {
+                    const isCurrent = currentUser?.uid === acc.uid;
+                    return (
+                      <button
+                        key={acc.uid}
+                        type="button"
+                        onClick={() => {
+                          if (onSwitchAccount) onSwitchAccount(acc);
+                          setShowUserDropdown(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-colors ${
+                          isCurrent ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-6 h-6 rounded-lg ${acc.avatarBg} text-white flex items-center justify-center text-[10px] font-black`}
+                          >
+                            {acc.tier}
+                          </span>
+                          <div>
+                            <p className="text-xs font-semibold leading-tight">{acc.name}</p>
+                            <p className="text-[10px] text-slate-400">{acc.roleLabel}</p>
+                          </div>
+                        </div>
+                        {isCurrent && <span className="text-blue-600 font-bold text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Actions */}
+                <div className="pt-2 px-2 border-t border-slate-100 flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      if (onOpenSwitchAccount) onOpenSwitchAccount();
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span>Mở màn hình chọn tài khoản...</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      if (onLogout) onLogout();
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Đăng xuất</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </header>
