@@ -15,6 +15,7 @@
 
   function Header({ currentUser, onSearch, onOpenNotifications }) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
     const [showNotifDropdown, setShowNotifDropdown] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -42,8 +43,30 @@
     return (
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-xs flex-shrink-0 z-20">
         {/* Global Search Bar */}
-        <div className="w-96 max-w-md">
-          <form onSubmit={handleSearchSubmit} className="relative">
+        <div className="flex items-center gap-3 w-96 max-w-md">
+          <button
+            type="button"
+            onClick={() => {
+              const expanded = !isSidebarExpanded;
+              setIsSidebarExpanded(expanded);
+              window.dispatchEvent(new CustomEvent('smartsales:sidebar-toggle', { detail: { expanded } }));
+            }}
+            className={`w-9 h-9 shrink-0 rounded-xl border flex items-center justify-center transition-colors ${
+              isSidebarExpanded
+                ? 'bg-blue-50 border-blue-100 text-blue-500'
+                : 'bg-white hover:bg-slate-50 border-slate-100 hover:border-slate-200 text-slate-400 hover:text-blue-500'
+            }`}
+            title={isSidebarExpanded ? 'Thu gọn thanh điều hướng' : 'Mở rộng thanh điều hướng'}
+            aria-label={isSidebarExpanded ? 'Thu gọn thanh điều hướng' : 'Mở rộng thanh điều hướng'}
+            aria-expanded={isSidebarExpanded}
+          >
+            <svg className={`w-[18px] h-[18px] transition-transform duration-200 ${isSidebarExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+              <rect x="3.5" y="4" width="17" height="16" rx="2.5" />
+              <path strokeLinecap="round" d="M9 4.5v15" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="m15 9-3 3 3 3" />
+            </svg>
+          </button>
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

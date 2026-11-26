@@ -253,15 +253,57 @@ export const PERMISSIONS_MATRIX = {
 };
 
 /**
- * Normalize role string
+ * Normalize role string (supports legacy roles and Ver 1.0 F0/F1/F2 tiers)
  */
 export function normalizeRole(role) {
   if (!role) return ROLES.SALES;
-  const upper = String(role).toUpperCase();
-  if (upper === 'ADMIN') return ROLES.ADMIN;
-  if (upper === 'MANAGER') return ROLES.MANAGER;
+  const upper = String(role).toUpperCase().trim();
+  if (upper === 'ADMIN' || upper === 'F0') return ROLES.ADMIN;
+  if (upper === 'MANAGER' || upper === 'LEADER' || upper === 'F1') return ROLES.MANAGER;
   if (upper === 'CUSTOMER_CARE' || upper === 'CSKH') return ROLES.CUSTOMER_CARE;
+  if (upper === 'SALES' || upper === 'MEMBER' || upper === 'F2' || upper === 'F3') return ROLES.SALES;
   return ROLES.SALES;
+}
+
+/**
+ * Extract normalized F0/F1/F2 account scope contract for easy integration with Nam's Account DB.
+ * - F0 (Admin): full access to dashboard, all categories, all business accounts/shops.
+ * - F1 (Leader): dashboard scoped to assigned categories; inbox/orders scoped to assigned categories & shops.
+ * - F2 (Member): no dashboard access; inbox/orders scoped to assigned categories, shops & tasks.
+ */
+export function getUserDataScope(user) {
+  const rawRole = String(user?.role || user?.tier || user?.level || 'ADMIN').toUpperCase().trim();
+  const normalizedRole = normalizeRole(rawRole);
+
+  let roleTier = 'F2';
+  if (normalizedRole === ROLES.ADMIN || rawRole === 'F0') {
+    roleTier = 'F0';
+  } else if (normalizedRole === ROLES.MANAGER || rawRole === 'F1' || rawRole === 'LEADER') {
+    roleTier = 'F1';
+  }
+
+  const allowedCategories = Array.isArray(user?.allowedCategories)
+    ? user.allowedCategories
+    : Array.isArray(user?.categories)
+    ? user.categories
+    : null;
+
+  const allowedShopIds = Array.isArray(user?.allowedShopIds)
+    ? user.allowedShopIds
+    : Array.isArray(user?.businessAccountIds)
+    ? user.businessAccountIds
+    : null;
+
+  return {
+    roleTier,
+    normalizedRole,
+    isAdmin: roleTier === 'F0',
+    isLeader: roleTier === 'F1',
+    isMember: roleTier === 'F2',
+    canViewDashboard: roleTier === 'F0' || roleTier === 'F1',
+    allowedCategories: roleTier === 'F0' ? null : allowedCategories,
+    allowedShopIds: roleTier === 'F0' ? null : allowedShopIds,
+  };
 }
 
 /**

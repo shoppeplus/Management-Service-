@@ -25,15 +25,64 @@ import {
   updateConversationStatus,
 } from '../models/conversation.js';
 import { requirePermission } from '../middleware/rbac.js';
-import { filterByScope, verifyEntityAccess, getPermissionScope } from '../utils/rbac.js';
+import { filterByScope, verifyEntityAccess, getPermissionScope, getUserDataScope } from '../utils/rbac.js';
+import TikTokService from '../services/tiktokService.js';
 
 const router = Router();
+const tiktokService = new TikTokService();
+
+const DEFAULT_BUSINESS_ACCOUNTS = [
+  { id: 'shop-id-01', shopId: 'shop-id-01', channelType: 'tiktok', name: 'TikTok Shop 01 - Mỹ Phẩm', category: 'Mỹ phẩm', connected: true },
+  { id: 'shop-id-02', shopId: 'shop-id-02', channelType: 'tiktok', name: 'TikTok Shop 02 - Gia Dụng & Điện Tử', category: 'Đồ gia dụng', connected: true },
+  { id: 'oa_zalo_smartsales', shopId: 'oa_zalo_smartsales', channelType: 'zalo', name: 'Zalo OA SmartSales', category: 'Điện tử', connected: true },
+  { id: 'page_smartsales', shopId: 'page_smartsales', channelType: 'facebook', name: 'Fanpage Thời Trang Unisex', category: 'Thời trang', connected: true },
+];
+
+// ── GET /business-accounts ─ List connected business pages / TikTok shops (scoped by user) ──
+router.get('/business-accounts', requirePermission('conversation.read'), (req, res) => {
+  const { channelType } = req.query;
+  const scope = getUserDataScope(req.user);
+  const configuredTikTok = tiktokService.getAccountsForUser(req.user).map((acc) => ({
+    id: acc.shopId,
+    shopId: acc.shopId,
+    channelType: 'tiktok',
+    name: acc.name,
+    category: acc.category || null,
+    connected: acc.connected,
+  }));
+
+  const mergedMap = new Map();
+  DEFAULT_BUSINESS_ACCOUNTS.forEach((acc) => mergedMap.set(acc.shopId, acc));
+  configuredTikTok.forEach((acc) => mergedMap.set(acc.shopId, { ...mergedMap.get(acc.shopId), ...acc }));
+
+  let accounts = Array.from(mergedMap.values());
+
+  if (channelType && channelType !== 'all') {
+    accounts = accounts.filter((acc) => acc.channelType === channelType);
+  }
+
+  if (Array.isArray(scope.allowedShopIds) && scope.allowedShopIds.length > 0) {
+    const allowedSet = new Set(scope.allowedShopIds.map((id) => String(id)));
+    accounts = accounts.filter((acc) => allowedSet.has(String(acc.shopId)));
+  }
+
+  return res.json({ success: true, data: accounts });
+});
 
 // ── GET /conversations ─ List conversations (scoped) ────────
 const listConversationsHandler = async (req, res) => {
   try {
-    const { status, channelType } = req.query;
-    let list = await getConversations({ status, channelType });
+    const { status, channelType, category, shopId } = req.query;
+    const scope = getUserDataScope(req.user);
+
+    let list = await getConversations({
+      status,
+      channelType,
+      category,
+      shopId,
+      allowedCategories: scope.allowedCategories,
+      allowedShopIds: scope.allowedShopIds,
+    });
 
     list = filterByScope(list, req.user, 'conversation.read');
     return res.json({ success: true, data: list });

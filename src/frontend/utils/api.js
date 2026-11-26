@@ -611,13 +611,15 @@
     },
 
     /**
-     * Get conversations list for the chat sidebar.
+     * Get conversations list for the chat sidebar (supports channelType, status, category, shopId).
      */
     async getConversations(filters = {}) {
       try {
         const params = new URLSearchParams();
         if (filters.channelType) params.append('channelType', filters.channelType);
         if (filters.status) params.append('status', filters.status);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.shopId) params.append('shopId', filters.shopId);
 
         const url = `${BASE_URL}/conversations${params.toString() ? `?${params.toString()}` : ''}`;
         const res = await fetch(url, {
@@ -635,8 +637,41 @@
         if (filters.channelType) {
           list = list.filter((c) => c.channelType === filters.channelType);
         }
+        if (filters.category && filters.category !== 'all') {
+          list = list.filter((c) => c.category === filters.category || c.subCategory === filters.category);
+        }
+        if (filters.shopId && filters.shopId !== 'all') {
+          list = list.filter((c) => (c.shopId || c.pageId || c.channelId) === filters.shopId);
+        }
         return list;
       }
+    },
+
+    /**
+     * Get hierarchical product categories with attached products.
+     */
+    async getCategories() {
+      const res = await fetch(`${BASE_URL}/products/categories/all`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const data = await res.json();
+      return data.data !== undefined ? data.data : data;
+    },
+
+    /**
+     * Get connected business accounts / multi-TikTok Shop accounts scoped to current user.
+     */
+    async getBusinessAccounts(channelType = 'all') {
+      const params = channelType && channelType !== 'all' ? `?channelType=${encodeURIComponent(channelType)}` : '';
+      const res = await fetch(`${BASE_URL}/messages/business-accounts${params}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const data = await res.json();
+      return data.data !== undefined ? data.data : data;
     },
 
     /**

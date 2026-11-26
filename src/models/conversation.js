@@ -68,7 +68,18 @@ export async function getConversationById(id) {
 }
 
 export async function getConversations(filters = {}) {
-  const { status, assignedUserId, channelType, limit = 100 } = filters;
+  const {
+    status,
+    assignedUserId,
+    channelType,
+    category,
+    shopId,
+    allowedCategories,
+    allowedShopIds,
+    limit = 100,
+  } = filters;
+
+  let list = [];
 
   if (isFirebaseReady && db) {
     try {
@@ -78,16 +89,56 @@ export async function getConversations(filters = {}) {
       if (channelType) query = query.where('channelType', '==', channelType);
 
       const snapshot = await query.limit(Number(limit)).get();
-      return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (err) {
       console.warn('Could not list conversations from Firestore:', err.message);
+      list = [...inMemoryConversations];
     }
+  } else {
+    list = [...inMemoryConversations];
   }
 
-  let list = [...inMemoryConversations];
   if (status) list = list.filter((c) => c.status === status);
   if (assignedUserId) list = list.filter((c) => c.assignedUserId === assignedUserId);
   if (channelType) list = list.filter((c) => c.channelType === channelType);
+
+  if (category && category !== 'all') {
+    const targetCat = String(category).toLowerCase();
+    list = list.filter((c) => {
+      const convCat = c.category || c.categoryName || c.metadata?.category || '';
+      const convSubCat = c.subCategory || c.metadata?.subCategory || '';
+      return (
+        String(convCat).toLowerCase() === targetCat ||
+        String(convSubCat).toLowerCase() === targetCat
+      );
+    });
+  }
+
+  if (shopId && shopId !== 'all') {
+    const targetShop = String(shopId);
+    list = list.filter((c) => {
+      const convShop = c.shopId || c.metadata?.tiktokShopId || c.channelId || c.pageId || '';
+      return String(convShop) === targetShop;
+    });
+  }
+
+  if (Array.isArray(allowedCategories) && allowedCategories.length > 0) {
+    const allowedCatSet = new Set(allowedCategories.map((cat) => String(cat).toLowerCase()));
+    list = list.filter((c) => {
+      const convCat = String(c.category || c.categoryName || c.metadata?.category || '').toLowerCase();
+      const convSubCat = String(c.subCategory || c.metadata?.subCategory || '').toLowerCase();
+      return allowedCatSet.has(convCat) || allowedCatSet.has(convSubCat);
+    });
+  }
+
+  if (Array.isArray(allowedShopIds) && allowedShopIds.length > 0) {
+    const allowedShopSet = new Set(allowedShopIds.map((id) => String(id)));
+    list = list.filter((c) => {
+      const convShop = String(c.shopId || c.metadata?.tiktokShopId || c.channelId || c.pageId || '');
+      return !convShop || allowedShopSet.has(convShop);
+    });
+  }
+
   return list.slice(0, Number(limit));
 }
 

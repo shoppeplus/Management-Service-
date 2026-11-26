@@ -39,6 +39,7 @@ export default class TikTokService {
   constructor(options = {}) {
     this.appKey = options.appKey || process.env.TIKTOK_APP_KEY;
     this.appSecret = options.appSecret || process.env.TIKTOK_APP_SECRET;
+    this.accounts = this._parseAccounts(options.accounts);
 
     if (!this.appKey) {
       console.warn('[TikTokService] TIKTOK_APP_KEY chưa được cấu hình.');
@@ -46,6 +47,119 @@ export default class TikTokService {
     if (!this.appSecret) {
       console.warn('[TikTokService] TIKTOK_APP_SECRET chưa được cấu hình.');
     }
+  }
+
+  _parseAccounts(accounts) {
+    if (Array.isArray(accounts)) return accounts.filter((account) => account && account.shopId);
+
+    if (typeof process.env.TIKTOK_ACCOUNTS === 'string') {
+      try {
+        const parsed = JSON.parse(process.env.TIKTOK_ACCOUNTS);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((account) => account && account.shopId);
+        }
+      } catch (error) {
+        console.warn('[TikTokService] TIKTOK_ACCOUNTS không phải JSON hợp lệ.');
+      }
+    }
+
+    if (process.env.TIKTOK_SHOP_ID) {
+      return [{
+        shopId: process.env.TIKTOK_SHOP_ID,
+        name: process.env.TIKTOK_SHOP_NAME || 'TikTok Shop',
+        appKey: this.appKey,
+        appSecret: this.appSecret,
+        accessToken: process.env.TIKTOK_ACCESS_TOKEN || '',
+      }];
+    }
+
+    return [];
+  }
+
+  resolveAccount(shopId) {
+    if (!shopId) return null;
+    return this.accounts.find((account) => String(account.shopId) === String(shopId)) || null;
+  }
+
+  /**
+   * Đăng ký hoặc cập nhật tài khoản TikTok Shop lúc runtime (chuẩn bị sẵn để nối DB của Nam).
+   * @param {object} account - { shopId, name, appKey, appSecret, accessToken, category }
+   */
+  registerAccount(account) {
+    if (!account || !account.shopId) {
+      throw new Error('shopId là bắt buộc khi đăng ký tài khoản TikTok Shop.');
+    }
+    const normalized = {
+      shopId: String(account.shopId),
+      name: account.name || `TikTok Shop ${account.shopId}`,
+      appKey: account.appKey || this.appKey,
+      appSecret: account.appSecret || this.appSecret,
+      accessToken: account.accessToken || '',
+      category: account.category || null,
+    };
+    const existingIdx = this.accounts.findIndex((item) => String(item.shopId) === normalized.shopId);
+    if (existingIdx >= 0) {
+      this.accounts[existingIdx] = { ...this.accounts[existingIdx], ...normalized };
+    } else {
+      this.accounts.push(normalized);
+    }
+    return {
+      shopId: normalized.shopId,
+      name: normalized.name,
+      connected: Boolean(normalized.accessToken),
+      category: normalized.category,
+    };
+  }
+
+  getAccounts() {
+    return this.accounts.map((account) => {
+      const item = {
+        shopId: String(account.shopId),
+        name: account.name || `TikTok Shop ${account.shopId}`,
+        connected: Boolean(account.accessToken),
+      };
+      if (account.category) {
+        item.category = account.category;
+      }
+      return item;
+    });
+  }
+
+  /**
+   * Trả danh sách TikTok Shop đã lọc theo phạm vi quyền của tài khoản (F0 xem hết, F1/F2 xem theo allowedShopIds).
+   * @param {object} [user] - user session có thể chứa allowedShopIds / businessAccountIds
+   */
+  getAccountsForUser(user = null) {
+    const all = this.getAccounts();
+    if (!user) return all;
+    const role = String(user.role || user.tier || '').toUpperCase();
+    if (role === 'ADMIN' || role === 'F0') return all;
+
+    const allowedIds = Array.isArray(user.allowedShopIds)
+      ? user.allowedShopIds
+      : Array.isArray(user.businessAccountIds)
+      ? user.businessAccountIds
+      : null;
+
+    if (!allowedIds) return all;
+    const allowedSet = new Set(allowedIds.map((id) => String(id)));
+    return all.filter((acc) => allowedSet.has(String(acc.shopId)));
+  }
+
+  /**
+   * Xác thực chữ ký Webhook từ TikTok Shop (timing-safe HMAC check).
+   */
+  verifyWebhookSignature({ path = '/api/webhooks/tiktok', params = {}, rawBody = '', signature = '', shopId = null }) {
+    if (!signature) return false;
+    const account = this.resolveAccount(shopId);
+    const secret = account?.appSecret || this.appSecret;
+    if (!secret) return false;
+
+    const expected = this._generateSignatureWithSecret(secret, path, params, rawBody);
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const actualBuf = Buffer.from(String(signature), 'utf8');
+    if (expectedBuf.length !== actualBuf.length) return false;
+    return crypto.timingSafeEqual(expectedBuf, actualBuf);
   }
 
   // ——————————————————————————————————————————————
@@ -83,6 +197,18 @@ export default class TikTokService {
     return signature;
   }
 
+  _generateSignatureWithSecret(appSecret, path, params = {}, body = '') {
+    if (!appSecret) {
+      throw new Error('TikTok app secret chưa được cấu hình.');
+    }
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map((key) => `${key}${params[key]}`)
+      .join('');
+    const baseString = `${appSecret}${path}${paramString}${body}${appSecret}`;
+    return crypto.createHmac('sha256', appSecret).update(baseString).digest('hex');
+  }
+
   // ——————————————————————————————————————————————
   //  Webhook Processing
   // ——————————————————————————————————————————————
@@ -104,16 +230,23 @@ export default class TikTokService {
 
     const eventType = body.type;
     const data = typeof body.data === 'string' ? JSON.parse(body.data) : body.data;
+    const shopId = body.shop_id || body.shopId || data?.shop_id || data?.shopId || null;
+    const account = this.resolveAccount(shopId);
+
+    if (shopId && !account) {
+      console.warn(`[TikTokService] Webhook từ shop chưa được cấu hình: ${shopId}`);
+      return results;
+    }
 
     switch (eventType) {
       case 'ORDER_STATUS_CHANGE': {
-        const result = await this._handleOrderStatusChange(data);
+        const result = await this._handleOrderStatusChange(data, account, shopId);
         if (result) results.push(result);
         break;
       }
 
       case 'PACKAGE_UPDATE': {
-        const result = await this._handlePackageUpdate(data);
+        const result = await this._handlePackageUpdate(data, account, shopId);
         if (result) results.push(result);
         break;
       }
@@ -133,7 +266,7 @@ export default class TikTokService {
    * @returns {Promise<object|null>}
    * @private
    */
-  async _handleOrderStatusChange(data) {
+  async _handleOrderStatusChange(data, account, shopId) {
     const tiktokOrderId = data.order_id;
     const tiktokStatus = data.order_status;
 
@@ -185,6 +318,8 @@ export default class TikTokService {
             tiktokOrderId,
             tiktokStatus,
             platform: 'tiktok',
+            tiktokShopId: shopId || account?.shopId || '',
+            tiktokShopName: account?.name || '',
           },
         };
 
@@ -199,6 +334,8 @@ export default class TikTokService {
         status: internalStatus,
         updatedAt: new Date().toISOString(),
         'metadata.tiktokStatus': tiktokStatus,
+        'metadata.tiktokShopId': shopId || account?.shopId || '',
+        'metadata.tiktokShopName': account?.name || '',
       };
 
       await doc.ref.update(updateData);
@@ -221,7 +358,7 @@ export default class TikTokService {
    * @returns {Promise<object|null>}
    * @private
    */
-  async _handlePackageUpdate(data) {
+  async _handlePackageUpdate(data, account, shopId) {
     const tiktokOrderId = data.order_id;
     const trackingNumber = data.tracking_number;
 
@@ -247,6 +384,8 @@ export default class TikTokService {
       const doc = snapshot.docs[0];
       const updateData = {
         updatedAt: new Date().toISOString(),
+        'metadata.tiktokShopId': shopId || account?.shopId || '',
+        'metadata.tiktokShopName': account?.name || '',
       };
 
       if (trackingNumber) {
@@ -286,24 +425,28 @@ export default class TikTokService {
    * @param {string} accessToken – OAuth access token của shop
    * @returns {Promise<object>}
    */
-  async getOrderDetail(orderId, accessToken) {
+  async getOrderDetail(orderId, accessToken, shopId) {
     const path = '/api/orders/detail/query';
     const timestamp = Math.floor(Date.now() / 1000);
+    const account = this.resolveAccount(shopId);
+    const appKey = account?.appKey || this.appKey;
+    const appSecret = account?.appSecret || this.appSecret;
+    const token = account?.accessToken || accessToken;
 
     const params = {
-      app_key: this.appKey,
+      app_key: appKey,
       timestamp: String(timestamp),
     };
 
     const bodyObj = { order_id: orderId };
     const bodyStr = JSON.stringify(bodyObj);
 
-    const sign = this.generateSignature(path, params, bodyStr);
+    const sign = this._generateSignatureWithSecret(appSecret, path, params, bodyStr);
 
     const queryString = new URLSearchParams({
       ...params,
       sign,
-      access_token: accessToken,
+      access_token: token,
     }).toString();
 
     const url = `${TIKTOK_API_BASE}${path}?${queryString}`;
@@ -331,22 +474,26 @@ export default class TikTokService {
    * @param {string} accessToken – OAuth access token
    * @returns {Promise<object>}
    */
-  async getOrders(queryParams = {}, accessToken) {
+  async getOrders(queryParams = {}, accessToken, shopId) {
     const path = '/api/orders/search';
     const timestamp = Math.floor(Date.now() / 1000);
+    const account = this.resolveAccount(shopId);
+    const appKey = account?.appKey || this.appKey;
+    const appSecret = account?.appSecret || this.appSecret;
+    const token = account?.accessToken || accessToken;
 
     const params = {
-      app_key: this.appKey,
+      app_key: appKey,
       timestamp: String(timestamp),
     };
 
     const bodyStr = JSON.stringify(queryParams);
-    const sign = this.generateSignature(path, params, bodyStr);
+    const sign = this._generateSignatureWithSecret(appSecret, path, params, bodyStr);
 
     const qs = new URLSearchParams({
       ...params,
       sign,
-      access_token: accessToken,
+      access_token: token,
     }).toString();
 
     const url = `${TIKTOK_API_BASE}${path}?${qs}`;
@@ -375,24 +522,28 @@ export default class TikTokService {
    * @param {string} accessToken – OAuth access token
    * @returns {Promise<object>}
    */
-  async acknowledgeOrder(orderId, accessToken) {
+  async acknowledgeOrder(orderId, accessToken, shopId) {
     const path = '/api/orders/ack';
     const timestamp = Math.floor(Date.now() / 1000);
+    const account = this.resolveAccount(shopId);
+    const appKey = account?.appKey || this.appKey;
+    const appSecret = account?.appSecret || this.appSecret;
+    const token = account?.accessToken || accessToken;
 
     const params = {
-      app_key: this.appKey,
+      app_key: appKey,
       timestamp: String(timestamp),
     };
 
     const bodyObj = { order_id: orderId };
     const bodyStr = JSON.stringify(bodyObj);
 
-    const sign = this.generateSignature(path, params, bodyStr);
+    const sign = this._generateSignatureWithSecret(appSecret, path, params, bodyStr);
 
     const qs = new URLSearchParams({
       ...params,
       sign,
-      access_token: accessToken,
+      access_token: token,
     }).toString();
 
     const url = `${TIKTOK_API_BASE}${path}?${qs}`;
