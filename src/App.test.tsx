@@ -492,22 +492,12 @@ describe('Omnichannel Inbox integration', () => {
     expect(conversations().getByRole('combobox', { name: 'Filter by status' })).toHaveValue('all')
   })
 
-  it('keeps assignment, team, priority and lifecycle changes synchronized across panels', async () => {
+  it('hides conversation assignment in Inbox and keeps priority and lifecycle actions available', async () => {
     const { user } = await openInbox()
-    await user.selectOptions(
-      workspace().getByRole('combobox', { name: 'Assign conversation' }),
-      'agent-minh',
-    )
-    await waitFor(() =>
-      expect(details().getByRole('combobox', { name: 'Assignee' })).toHaveValue('agent-minh'),
-    )
-    await user.selectOptions(
-      workspace().getByRole('combobox', { name: 'Assign team' }),
-      'team-sales',
-    )
-    await waitFor(() =>
-      expect(details().getByRole('combobox', { name: 'Team' })).toHaveValue('team-sales'),
-    )
+    expect(workspace().queryByRole('combobox', { name: 'Assign conversation' })).not.toBeInTheDocument()
+    expect(workspace().queryByRole('combobox', { name: 'Assign team' })).not.toBeInTheDocument()
+    expect(details().queryByRole('combobox', { name: 'Assignee' })).not.toBeInTheDocument()
+    expect(details().queryByRole('combobox', { name: 'Team' })).not.toBeInTheDocument()
     await user.selectOptions(details().getByRole('combobox', { name: 'Priority' }), 'urgent')
     await waitFor(() =>
       expect(details().getByRole('combobox', { name: 'Priority' })).toHaveValue('urgent'),
@@ -521,8 +511,6 @@ describe('Omnichannel Inbox integration', () => {
     )
     expect(details().getByText('SLA completed')).toBeInTheDocument()
     expect(await savedConversation()).toMatchObject({
-      assigneeId: 'agent-minh',
-      teamId: 'team-sales',
       priority: 'urgent',
       status: 'resolved',
     })

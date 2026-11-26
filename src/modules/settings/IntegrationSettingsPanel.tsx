@@ -36,6 +36,7 @@ const errorMessage = (cause: unknown, fallback: string) =>
   cause instanceof Error ? cause.message : fallback
 
 type MarketplaceProvider = 'shopee' | 'lazada' | 'tiktokshop'
+type CredentialProvider = Exclude<IntegrationProvider, 'tiktok'>
 type MarketplaceDraft = Record<string, string>
 type CredentialDrafts = {
   geminiKey: string
@@ -160,10 +161,12 @@ function MarketplaceCredentialForm({
   values,
   busy,
   canSave,
+  canAuthorize,
   ready,
   onChange,
   onTest,
   onSave,
+  onAuthorize,
   onRemove,
 }: {
   provider: MarketplaceProvider
@@ -173,10 +176,12 @@ function MarketplaceCredentialForm({
   values: MarketplaceDraft
   busy: IntegrationProvider | null
   canSave: boolean
+  canAuthorize?: boolean
   ready: boolean
   onChange: (name: string, value: string) => void
   onTest: () => void
   onSave: () => void
+  onAuthorize?: () => void
   onRemove: () => void
 }) {
   const { t } = useI18n()
@@ -229,6 +234,17 @@ function MarketplaceCredentialForm({
         </label>
       ))}
       <div className="integration-credential-actions">
+        {onAuthorize && (
+          <button
+            className="button button-secondary"
+            type="button"
+            aria-label={t(`Kết nối ${title} qua OAuth`, `Authorize ${title} with OAuth`)}
+            disabled={busy !== null || !canAuthorize}
+            onClick={onAuthorize}
+          >
+            {t('Ủy quyền qua TikTok', 'Authorize with TikTok')}
+          </button>
+        )}
         <button
           className="button button-secondary"
           type="button"
@@ -351,7 +367,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
     void load()
   }, [load])
 
-  const credentialsFor = (provider: IntegrationProvider): ProviderCredentials => {
+  const credentialsFor = (provider: CredentialProvider): ProviderCredentials => {
     if (provider === 'gemini') return { apiKey: drafts.geminiKey, model: drafts.geminiModel }
     if (provider === 'telegram') return { botToken: drafts.telegramToken }
     if (provider === 'shopee')
@@ -391,7 +407,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
       .every((field) => Boolean(values[field.name]?.trim()))
   }
 
-  const testCredentials = async (provider: IntegrationProvider) => {
+  const testCredentials = async (provider: CredentialProvider) => {
     setCredentialBusy(provider)
     setCredentialError('')
     setCredentialNotice('')
@@ -409,7 +425,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
     }
   }
 
-  const saveCredentials = async (provider: IntegrationProvider) => {
+  const saveCredentials = async (provider: CredentialProvider) => {
     setCredentialBusy(provider)
     setCredentialError('')
     setCredentialNotice('')
@@ -463,6 +479,24 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
     }
   }
 
+  const startOAuth = async (
+    provider: 'tiktok' | 'tiktokshop',
+    credentials: Record<string, string> = {},
+  ) => {
+    setCredentialBusy(provider)
+    setCredentialError('')
+    setCredentialNotice('')
+    try {
+      const authorizationUrl = await integrationSettingsService.authorize(provider, credentials)
+      window.location.assign(authorizationUrl)
+    } catch (cause) {
+      setCredentialError(
+        errorMessage(cause, t('Không bắt đầu được OAuth.', 'Unable to start OAuth.')),
+      )
+      setCredentialBusy(null)
+    }
+  }
+
   const removeCredentials = async (provider: IntegrationProvider) => {
     setCredentialBusy(provider)
     setCredentialError('')
@@ -483,9 +517,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
   const canSaveGemini =
     canSaveCredentials &&
     Boolean(drafts.geminiModel.trim()) &&
-    Boolean(
-      drafts.geminiKey.trim() || settingsStatus?.providers.gemini.source === 'workspace',
-    )
+    Boolean(drafts.geminiKey.trim() || settingsStatus?.providers.gemini.source === 'workspace')
   const sourceLabel = (provider: IntegrationProvider) =>
     settingsStatus?.providers[provider].source === 'workspace'
       ? t('Cấu hình của doanh nghiệp', 'Workspace configuration')
@@ -665,10 +697,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
                 <button
                   className="button button-primary"
                   type="button"
-                  disabled={
-                    credentialBusy !== null ||
-                    !canSaveGemini
-                  }
+                  disabled={credentialBusy !== null || !canSaveGemini}
                   onClick={() => void saveCredentials('gemini')}
                 >
                   {t('Lưu cấu hình', 'Save configuration')}
@@ -768,10 +797,19 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
               values={drafts.tiktokshop}
               busy={credentialBusy}
               canSave={canSaveCredentials}
+              canAuthorize={Boolean(
+                drafts.tiktokshop.appKey.trim() && drafts.tiktokshop.appSecret.trim(),
+              )}
               ready={marketplaceCredentialsReady('tiktokshop')}
               onChange={(name, value) => updateMarketplaceDraft('tiktokshop', name, value)}
               onTest={() => void testCredentials('tiktokshop')}
               onSave={() => void saveCredentials('tiktokshop')}
+              onAuthorize={() =>
+                void startOAuth('tiktokshop', {
+                  appKey: drafts.tiktokshop.appKey,
+                  appSecret: drafts.tiktokshop.appSecret,
+                })
+              }
               onRemove={() => void removeCredentials('tiktokshop')}
             />
           </div>
@@ -780,7 +818,7 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
           <p className="integration-capability-note">
             {t(
               'Kết nối sàn thật chỉ hoạt động ở chế độ Live và cần App credentials cùng access token do sàn cấp.',
-              'Real marketplace connections are available in Live mode and require app credentials and a provider-issued access token.',
+              'Real marketplace connections are available in Live mode and require provider app credentials and authorization.',
             )}
           </p>
         )}
@@ -813,60 +851,99 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
           </p>
         )}
         {APP_MODE === 'live' && canManageIntegrations && (
-          <div className="integration-credential-card integration-telegram-card">
-            <div>
-              <strong>Telegram Bot API</strong>
-              <small>{sourceLabel('telegram')}</small>
-            </div>
-            <label>
-              {t('Telegram bot token', 'Telegram bot token')}
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={drafts.telegramToken}
-                onChange={(event) =>
-                  setDrafts((current) => ({ ...current, telegramToken: event.target.value }))
-                }
-                placeholder={
-                  settingsStatus?.providers.telegram.configured
-                    ? t('Đã có token · nhập để thay thế', 'Configured · enter to replace')
-                    : t('Nhập bot token từ BotFather', 'Enter bot token from BotFather')
-                }
-              />
-            </label>
-            <div className="integration-credential-actions">
-              <button
-                className="button button-secondary"
-                type="button"
-                disabled={credentialBusy !== null || !drafts.telegramToken.trim()}
-                onClick={() => void testCredentials('telegram')}
-              >
-                {credentialBusy === 'telegram'
-                  ? t('Đang kiểm tra…', 'Testing…')
-                  : t('Kiểm tra bot', 'Test bot')}
-              </button>
-              <button
-                className="button button-primary"
-                type="button"
-                disabled={
-                  credentialBusy !== null || !canSaveCredentials || !drafts.telegramToken.trim()
-                }
-                onClick={() => void saveCredentials('telegram')}
-              >
-                {t('Lưu cấu hình', 'Save configuration')}
-              </button>
-              {settingsStatus?.providers.telegram.source === 'workspace' && (
+          <>
+            <div className="integration-credential-card">
+              <div className="integration-marketplace-heading">
+                <div>
+                  <strong>TikTok cá nhân · Login Kit</strong>
+                  <small>{settingsStatus?.providers.tiktok.accountName || 'Chưa kết nối'}</small>
+                </div>
+                <ProviderState configured={settingsStatus?.providers.tiktok.configured ?? null} />
+              </div>
+              <p className="integration-capability-note">
+                {t(
+                  'Login Kit chỉ cấp quyền hồ sơ cơ bản theo quyền TikTok duyệt; không cấp quyền đọc tin nhắn DM.',
+                  'Login Kit only grants approved basic profile access; it does not grant TikTok DM access.',
+                )}
+              </p>
+              <div className="integration-credential-actions">
                 <button
                   className="button button-secondary"
                   type="button"
-                  disabled={credentialBusy !== null}
-                  onClick={() => void removeCredentials('telegram')}
+                  disabled={credentialBusy !== null || !canSaveCredentials}
+                  onClick={() => void startOAuth('tiktok')}
                 >
-                  {t('Ngắt kết nối', 'Disconnect')}
+                  {credentialBusy === 'tiktok'
+                    ? t('Đang chuyển đến TikTok…', 'Redirecting to TikTok…')
+                    : t('Kết nối tài khoản cá nhân', 'Connect personal account')}
                 </button>
-              )}
+                {settingsStatus?.providers.tiktok.source === 'workspace' && (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    disabled={credentialBusy !== null}
+                    onClick={() => void removeCredentials('tiktok')}
+                  >
+                    {t('Ngắt kết nối', 'Disconnect')}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+            <div className="integration-credential-card integration-telegram-card">
+              <div>
+                <strong>Telegram Bot API</strong>
+                <small>{sourceLabel('telegram')}</small>
+              </div>
+              <label>
+                {t('Telegram bot token', 'Telegram bot token')}
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={drafts.telegramToken}
+                  onChange={(event) =>
+                    setDrafts((current) => ({ ...current, telegramToken: event.target.value }))
+                  }
+                  placeholder={
+                    settingsStatus?.providers.telegram.configured
+                      ? t('Đã có token · nhập để thay thế', 'Configured · enter to replace')
+                      : t('Nhập bot token từ BotFather', 'Enter bot token from BotFather')
+                  }
+                />
+              </label>
+              <div className="integration-credential-actions">
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  disabled={credentialBusy !== null || !drafts.telegramToken.trim()}
+                  onClick={() => void testCredentials('telegram')}
+                >
+                  {credentialBusy === 'telegram'
+                    ? t('Đang kiểm tra…', 'Testing…')
+                    : t('Kiểm tra bot', 'Test bot')}
+                </button>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={
+                    credentialBusy !== null || !canSaveCredentials || !drafts.telegramToken.trim()
+                  }
+                  onClick={() => void saveCredentials('telegram')}
+                >
+                  {t('Lưu cấu hình', 'Save configuration')}
+                </button>
+                {settingsStatus?.providers.telegram.source === 'workspace' && (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    disabled={credentialBusy !== null}
+                    onClick={() => void removeCredentials('telegram')}
+                  >
+                    {t('Ngắt kết nối', 'Disconnect')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
         )}
         <div className="integration-channel-grid">
           {SOCIAL_CHANNELS.map(channelRow)}
@@ -875,8 +952,8 @@ export default function IntegrationSettingsPanel({ onManageChannels }: Props) {
         <div className="integration-actions">
           <p>
             {t(
-              'Telegram dùng bot token phía máy chủ và đồng bộ khi bấm thủ công. Các kênh khác cần OAuth/webhook chính thức trước khi hoạt động Live.',
-              'Telegram uses a server-side bot token and syncs only on demand. Other channels need official OAuth/webhook integrations before Live use.',
+              'Telegram đồng bộ tin nhắn khi bấm thủ công. TikTok Login Kit chỉ xác thực hồ sơ cá nhân, không đọc DM; các kênh còn lại cần API hộp thư chính thức.',
+              'Telegram syncs messages on demand. TikTok Login Kit only authenticates a personal profile and cannot read DMs; other channels need official inbox APIs.',
             )}
           </p>
           {onManageChannels ? (

@@ -56,6 +56,11 @@ describe('Inventory HTTP API with migrated database', () => {
       defaults: {
         gemini: { apiKey: '', model: 'gemini-3.8-flash' },
         telegram: { botToken: '' },
+        tiktok: { clientKey: 'tiktok-client-key', clientSecret: 'tiktok-client-secret-value' },
+      },
+      redirectUris: {
+        tiktok: 'https://app.example.com/api/v1/integrations/settings/tiktok/callback',
+        tiktokshop: 'https://app.example.com/api/v1/integrations/settings/tiktokshop/callback',
       },
       fetchImpl: async (url) => {
         const target = String(url)
@@ -120,6 +125,31 @@ describe('Inventory HTTP API with migrated database', () => {
     expect(body).toEqual({ status: 'ok', module: 'inventory', apiVersion: 'v1' })
     expect(response.headers.get('cache-control')).toBe('no-store')
     expect(response.headers.get('x-content-type-options')).toBe('nosniff')
+  })
+
+  it('starts TikTok OAuth only for admins and serves the public callback route', async () => {
+    const unauthenticated = await request('/integrations/settings/tiktok/authorize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    })
+    expect(unauthenticated.response.status).toBe(401)
+
+    const started = await request('/integrations/settings/tiktok/authorize', {
+      method: 'POST',
+      headers: { ...authorize(), 'Content-Type': 'application/json' },
+      body: '{}',
+    })
+    expect(started.response.status).toBe(200)
+    expect(new URL(started.body.authorizationUrl).origin).toBe('https://www.tiktok.com')
+
+    const callback = await fetch(
+      `${baseUrl}/integrations/settings/tiktok/callback?state=invalid&code=sample`,
+    )
+    expect(callback.status).toBe(400)
+    expect(callback.headers.get('content-type')).toContain('text/html')
+    expect(callback.headers.get('cache-control')).toBe('no-store')
+    expect(await callback.text()).toContain('Không thể kết nối')
   })
 
   it('limits market research status and history to authenticated administrators', async () => {

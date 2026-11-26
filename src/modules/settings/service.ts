@@ -1,11 +1,7 @@
 import { notifyAuthenticationExpired } from '../../services/authSession'
 
 export type IntegrationProvider =
-  | 'gemini'
-  | 'telegram'
-  | 'shopee'
-  | 'lazada'
-  | 'tiktokshop'
+  'gemini' | 'telegram' | 'shopee' | 'lazada' | 'tiktok' | 'tiktokshop'
 
 export interface ProviderCredentialStatus {
   configured: boolean
@@ -38,6 +34,16 @@ export type ProviderCredentials =
       refreshToken?: string
       region?: string
       shopCipher?: string
+    }
+  | {
+      clientKey: string
+      clientSecret: string
+      accessToken: string
+      refreshToken?: string
+      openId: string
+      scope?: string
+      accessTokenExpiresAt?: string
+      refreshTokenExpiresAt?: string
     }
 
 export class IntegrationSettingsApiError extends Error {
@@ -72,8 +78,8 @@ const isStatus = (value: unknown): value is IntegrationSettingsStatus => {
   const providers = value.providers
   return (
     isRecord(providers) &&
-    (['gemini', 'telegram', 'shopee', 'lazada', 'tiktokshop'] as const).every((provider) =>
-      isProviderStatus(providers[provider]),
+    (['gemini', 'telegram', 'shopee', 'lazada', 'tiktok', 'tiktokshop'] as const).every(
+      (provider) => isProviderStatus(providers[provider]),
     )
   )
 }
@@ -192,6 +198,41 @@ export function createIntegrationSettingsService({
           'Máy chủ không xác nhận đã ngắt cấu hình.',
         )
       return value
+    },
+    async authorize(provider: 'tiktok' | 'tiktokshop', credentials: Record<string, string> = {}) {
+      const value = await request(`${settingsPath(provider)}/authorize`, {
+        method: 'POST',
+        body: credentials,
+      })
+      if (!isRecord(value) || typeof value.authorizationUrl !== 'string')
+        throw new IntegrationSettingsApiError(
+          502,
+          'INVALID_AUTHORIZATION_RESULT',
+          'Máy chủ không trả về liên kết OAuth hợp lệ.',
+        )
+      let authorizationUrl: URL
+      try {
+        authorizationUrl = new URL(value.authorizationUrl)
+      } catch {
+        throw new IntegrationSettingsApiError(
+          502,
+          'INVALID_AUTHORIZATION_RESULT',
+          'Máy chủ không trả về liên kết OAuth hợp lệ.',
+        )
+      }
+      if (
+        authorizationUrl.protocol !== 'https:' ||
+        authorizationUrl.username ||
+        authorizationUrl.password ||
+        authorizationUrl.origin !==
+          (provider === 'tiktok' ? 'https://www.tiktok.com' : 'https://services.tiktokshop.com')
+      )
+        throw new IntegrationSettingsApiError(
+          502,
+          'INVALID_AUTHORIZATION_RESULT',
+          'Máy chủ không trả về liên kết OAuth an toàn.',
+        )
+      return authorizationUrl.href
     },
   }
 }

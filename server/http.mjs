@@ -47,6 +47,23 @@ export function createInventoryServer({
     })
     response.end(JSON.stringify(data))
   }
+  const sendOAuthPage = (response, status, title, message) => {
+    const escapeHtml = (value) =>
+      String(value).replace(/[&<>"']/g, (character) => {
+        const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+        return entities[character]
+      })
+    response.writeHead(status, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'",
+      'Referrer-Policy': 'no-referrer',
+    })
+    response.end(
+      `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><body style="font:16px system-ui,sans-serif;max-width:560px;margin:12vh auto;padding:24px;color:#20232d"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><p>Bạn có thể đóng trang này và quay lại SmartSales.</p></body></html>`,
+    )
+  }
   const fail = (status, code, message) => Object.assign(new Error(message), { status, code })
   const readJson = async (request) => {
     if (request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== 'application/json')
@@ -149,6 +166,28 @@ export function createInventoryServer({
         throw fail(403, 'ORIGIN_DENIED', 'Nguồn gửi yêu cầu không được phép.')
       if (mutation && !bearer && cookieToken(request) && !origin)
         throw fail(403, 'ORIGIN_REQUIRED', 'Thiếu nguồn gửi yêu cầu cho phiên trình duyệt.')
+
+      const oauthCallbackMatch = url.pathname.match(
+        /^\/api\/v1\/integrations\/settings\/(tiktok|tiktokshop)\/callback$/,
+      )
+      if (oauthCallbackMatch && method === 'GET') {
+        try {
+          const result = await integrations.completeOAuth(oauthCallbackMatch[1], url.searchParams)
+          return sendOAuthPage(
+            response,
+            200,
+            'Kết nối thành công',
+            `Đã kết nối ${result.accountName}.`,
+          )
+        } catch (error) {
+          const knownError = Number.isInteger(error?.status) && typeof error?.code === 'string'
+          const status = knownError ? error.status : 502
+          const message = knownError
+            ? error.message
+            : 'Không thể hoàn tất kết nối OAuth. Hãy thử lại.'
+          return sendOAuthPage(response, status, 'Không thể kết nối', message)
+        }
+      }
 
       if (url.pathname === '/api/v1/health' && method === 'GET') {
         db.prepare('SELECT 1').get()
@@ -311,7 +350,11 @@ export function createInventoryServer({
           )
         )
           throw fail(400, 'INVALID_FILTER', 'Bộ lọc bảng cân đối thử không hợp lệ.')
-        return send(response, 200, accounting.trialBalance(actor, Object.fromEntries(url.searchParams)))
+        return send(
+          response,
+          200,
+          accounting.trialBalance(actor, Object.fromEntries(url.searchParams)),
+        )
       }
       if (url.pathname === '/api/v1/accounting/journals' && method === 'GET') {
         const allowed = ['from', 'to', 'accountCode', 'limit', 'offset']
@@ -361,6 +404,15 @@ export function createInventoryServer({
         )
       if (url.pathname === '/api/v1/integrations/settings' && method === 'GET')
         return send(response, 200, integrations.status(actor))
+      const integrationAuthorizeMatch = url.pathname.match(
+        /^\/api\/v1\/integrations\/settings\/(tiktok|tiktokshop)\/authorize$/,
+      )
+      if (integrationAuthorizeMatch && method === 'POST')
+        return send(
+          response,
+          200,
+          integrations.beginOAuth(actor, integrationAuthorizeMatch[1], await readJson(request)),
+        )
       const integrationTestMatch = url.pathname.match(
         /^\/api\/v1\/integrations\/settings\/([^/]+)\/test$/,
       )

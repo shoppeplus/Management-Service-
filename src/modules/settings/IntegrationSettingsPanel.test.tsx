@@ -20,6 +20,7 @@ vi.mock('./service', () => ({
     test: vi.fn(),
     save: vi.fn(),
     remove: vi.fn(),
+    authorize: vi.fn(),
   },
 }))
 
@@ -60,6 +61,7 @@ describe('Integration settings', () => {
         telegram: { configured: true, source: 'workspace' },
         shopee: { configured: false, source: 'server' },
         lazada: { configured: false, source: 'server' },
+        tiktok: { configured: false, source: 'server' },
         tiktokshop: { configured: false, source: 'server' },
       },
     })
@@ -81,6 +83,8 @@ describe('Integration settings', () => {
     expect(screen.queryByText('SerpAPI')).not.toBeInTheDocument()
     expect(screen.getByText('gemini-3.8-flash')).toBeInTheDocument()
     expect(screen.getAllByText('Connector not implemented').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Connect personal account' })).toBeInTheDocument()
+    expect(screen.getByText(/does not grant TikTok DM access/i)).toBeInTheDocument()
     expect(screen.getByText('GEMINI_API_KEY')).toBeInTheDocument()
     expect(screen.getByText(/never revealed or stored in the browser/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Open AI analysis/ })).toHaveAttribute(
@@ -99,6 +103,7 @@ describe('Integration settings', () => {
         telegram: { configured: false, source: 'server' as const },
         shopee: { configured: false, source: 'server' as const },
         lazada: { configured: false, source: 'server' as const },
+        tiktok: { configured: false, source: 'server' as const },
         tiktokshop: { configured: false, source: 'server' as const },
       },
     }
@@ -141,6 +146,7 @@ describe('Integration settings', () => {
         telegram: { configured: false, source: 'server' as const },
         shopee: { configured: false, source: 'server' as const },
         lazada: { configured: false, source: 'server' as const },
+        tiktok: { configured: false, source: 'server' as const },
         tiktokshop: { configured: false, source: 'server' as const },
       },
     }
@@ -178,6 +184,7 @@ describe('Integration settings', () => {
         telegram: { configured: false, source: 'server' as const },
         shopee: { configured: true, source: 'workspace' as const, accountName: 'Smart Store' },
         lazada: { configured: false, source: 'server' as const },
+        tiktok: { configured: false, source: 'server' as const },
         tiktokshop: { configured: false, source: 'server' as const },
       },
     }
@@ -219,6 +226,7 @@ describe('Integration settings', () => {
         telegram: { configured: false, source: 'server' },
         shopee: { configured: false, source: 'server' },
         lazada: { configured: false, source: 'server' },
+        tiktok: { configured: false, source: 'server' },
         tiktokshop: { configured: false, source: 'server' },
       },
     })

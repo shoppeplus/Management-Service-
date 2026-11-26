@@ -9,6 +9,11 @@ const staff = { userId: 'staff-a', tenantId: 'tenant-a', role: 'staff' }
 const defaults = {
   gemini: { apiKey: '', model: 'gemini-3.8-flash' },
   telegram: { botToken: '' },
+  tiktok: { clientKey: 'tiktok-client-key', clientSecret: 'tiktok-client-secret-value' },
+}
+const redirectUris = {
+  tiktok: 'https://app.example.com/api/v1/integrations/settings/tiktok/callback',
+  tiktokshop: 'https://app.example.com/api/v1/integrations/settings/tiktokshop/callback',
 }
 
 describe('integration settings', () => {
@@ -65,6 +70,7 @@ describe('integration settings', () => {
       encryptionKey,
       fetchImpl,
       defaults,
+      redirectUris,
       now: () => new Date(timestamp),
     })
   })
@@ -116,8 +122,9 @@ describe('integration settings', () => {
   })
 
   it('allows checking credentials without persisting them and supports disconnecting saved overrides', async () => {
-    await expect(service.test(owner, 'serpapi', { apiKey: 'serp-secret-key-value' })).rejects
-      .toMatchObject({ code: 'INTEGRATION_NOT_FOUND' })
+    await expect(
+      service.test(owner, 'serpapi', { apiKey: 'serp-secret-key-value' }),
+    ).rejects.toMatchObject({ code: 'INTEGRATION_NOT_FOUND' })
     const result = await service.test(owner, 'telegram', {
       botToken: '123456789:abcdefghijklmnopqrstuvwxyz_123456',
     })
@@ -236,5 +243,106 @@ describe('integration settings', () => {
     ).rejects.toMatchObject({ code: 'INTEGRATION_STORAGE_NOT_CONFIGURED' })
     expect(fetchImpl).not.toHaveBeenCalled()
     expect(withoutKey.status(owner).canSaveCredentials).toBe(false)
+  })
+
+  it('uses single-use state and stores TikTok Login Kit tokens encrypted after callback', async () => {
+    fetchImpl.mockImplementation(async (url, options) => {
+      if (String(url).includes('/oauth/token/')) {
+        expect(options.method).toBe('POST')
+        expect(String(options.body)).toContain('grant_type=authorization_code')
+        expect(String(options.body)).toContain(
+          `redirect_uri=${encodeURIComponent(redirectUris.tiktok)}`,
+        )
+        return Response.json({
+          access_token: 'tiktok-user-access-token',
+          refresh_token: 'tiktok-user-refresh-token',
+          open_id: 'user_open_id_12345',
+          scope: 'user.info.basic',
+          expires_in: 7200,
+          refresh_expires_in: 15552000,
+        })
+      }
+      if (String(url).includes('open.tiktokapis.com'))
+        return Response.json({ data: { user: { open_id: 'user_open_id_12345' } } })
+      return Response.json({ error: 'unexpected request' }, { status: 500 })
+    })
+
+    const { authorizationUrl } = service.beginOAuth(owner, 'tiktok', {})
+    const authorization = new URL(authorizationUrl)
+    const state = authorization.searchParams.get('state')
+    expect(authorization.origin).toBe('https://www.tiktok.com')
+    expect(authorization.searchParams.get('redirect_uri')).toBe(redirectUris.tiktok)
+    expect(authorization.searchParams.get('scope')).toBe('user.info.basic')
+    expect(state).toMatch(/^[A-Za-z0-9_-]{40,60}$/)
+    expect(
+      JSON.stringify(db.prepare('SELECT ciphertext,nonce,auth_tag FROM tiktok_oauth_states').all()),
+    ).not.toContain('tiktok-client-secret-value')
+
+    await expect(
+      service.completeOAuth('tiktok', new URLSearchParams({ code: 'oauth-code', state })),
+    ).resolves.toMatchObject({ provider: 'tiktok', accountName: 'TikTok account d12345' })
+    expect(service.credentialsFor(owner, 'tiktok')).toMatchObject({
+      openId: 'user_open_id_12345',
+      scope: 'user.info.basic',
+      refreshToken: 'tiktok-user-refresh-token',
+    })
+    expect(service.status(owner).providers.tiktok.configured).toBe(true)
+    await expect(
+      service.completeOAuth('tiktok', new URLSearchParams({ code: 'oauth-code', state })),
+    ).rejects.toMatchObject({ code: 'OAUTH_STATE_INVALID' })
+  })
+
+  it('exchanges TikTok Shop auth codes and verifies the authorized shop before saving', async () => {
+    fetchImpl.mockImplementation(async (url) => {
+      if (String(url).includes('auth.tiktok-shops.com')) {
+        const tokenUrl = new URL(String(url))
+        expect(tokenUrl.searchParams.get('grant_type')).toBe('authorized_code')
+        expect(tokenUrl.searchParams.get('auth_code')).toBe('shop-auth-code')
+        return Response.json({
+          code: 0,
+          data: {
+            access_token: 'tiktok-shop-access-token',
+            refresh_token: 'tiktok-shop-refresh-token',
+            access_token_expire_in: 1800000000,
+            refresh_token_expire_in: 1800000000,
+          },
+        })
+      }
+      if (String(url).includes('tiktokglobalshop.com'))
+        return Response.json({
+          code: 0,
+          data: { shops: [{ shop_name: 'Connected Shop', shop_cipher: 'shop-cipher-123456' }] },
+        })
+      return Response.json({ error: 'unexpected request' }, { status: 500 })
+    })
+
+    const { authorizationUrl } = service.beginOAuth(owner, 'tiktokshop', {
+      appKey: '34567',
+      appSecret: 'tiktok-app-secret-value',
+    })
+    const authorization = new URL(authorizationUrl)
+    const state = authorization.searchParams.get('state')
+    expect(authorization.hostname).toBe('services.tiktokshop.com')
+    expect(authorization.searchParams.get('service_id')).toBe('34567')
+
+    await expect(
+      service.completeOAuth('tiktokshop', new URLSearchParams({ code: 'shop-auth-code', state })),
+    ).resolves.toMatchObject({ provider: 'tiktokshop', accountName: 'Connected Shop' })
+    expect(service.credentialsFor(owner, 'tiktokshop')).toMatchObject({
+      accessToken: 'tiktok-shop-access-token',
+      refreshToken: 'tiktok-shop-refresh-token',
+      shopCipher: 'shop-cipher-123456',
+    })
+  })
+
+  it('requires HTTPS redirect URIs and authorization by an owner or admin', () => {
+    const insecureRedirectService = createIntegrationSettings(db, {
+      encryptionKey,
+      fetchImpl,
+      defaults,
+      redirectUris: { tiktok: 'http://localhost/callback' },
+    })
+    expect(() => insecureRedirectService.beginOAuth(owner, 'tiktok', {})).toThrowError(/HTTPS tĩnh/)
+    expect(() => service.beginOAuth(staff, 'tiktok', {})).toThrowError(/owner\/admin/)
   })
 })

@@ -13,25 +13,14 @@ import {
   Phone,
   Plus,
   ShieldCheck,
-  UserRound,
-  UsersRound,
   X,
 } from 'lucide-react'
-import type {
-  Agent,
-  Conversation,
-  ConversationPatch,
-  Customer,
-  CustomerPatch,
-  Team,
-} from '../types/inbox'
+import type { Conversation, ConversationPatch, Customer, CustomerPatch } from '../types/inbox'
 import { translateMessage, useI18n } from '../i18n'
 
 interface Props {
   customer: Customer
   conversation: Conversation
-  agents: Agent[]
-  teams: Team[]
   onUpdateConversation: (patch: ConversationPatch) => Promise<void>
   onUpdateCustomer: (patch: CustomerPatch) => Promise<void>
   onClose: () => void
@@ -63,58 +52,6 @@ const errorText = (error: unknown, locale: 'vi' | 'en') =>
     : locale === 'vi'
       ? 'Không thể lưu thay đổi. Vui lòng thử lại.'
       : 'Could not save changes. Please try again.'
-
-function AssignmentPanel({
-  agents,
-  teams,
-  conversation,
-  busy,
-  onChange,
-}: Pick<Props, 'agents' | 'teams' | 'conversation' | 'busy'> & {
-  onChange: (patch: ConversationPatch) => void
-}) {
-  const { t } = useI18n()
-  return (
-    <section className="details-section assignment-panel" aria-label={t('Phân công', 'Assignment')}>
-      <div className="detail-row">
-        <label htmlFor="detail-assignee">
-          <UserRound size={14} /> {t('Người phụ trách', 'Assignee')}
-        </label>
-        <select
-          id="detail-assignee"
-          value={conversation.assigneeId ?? ''}
-          disabled={busy}
-          onChange={(event) => onChange({ assigneeId: event.target.value || null })}
-        >
-          <option value="">{t('Chưa phân công', 'Unassigned')}</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="detail-row">
-        <label htmlFor="detail-team">
-          <UsersRound size={14} /> {t('Nhóm', 'Team')}
-        </label>
-        <select
-          id="detail-team"
-          value={conversation.teamId ?? ''}
-          disabled={busy}
-          onChange={(event) => onChange({ teamId: event.target.value || null })}
-        >
-          <option value="">{t('Chưa có nhóm', 'No team')}</option>
-          {teams.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.name}
-            </option>
-          ))}
-        </select>
-      </div>
-    </section>
-  )
-}
 
 function EditCustomerModal({
   customer,
@@ -340,8 +277,6 @@ function EditCustomerModal({
 export default function CustomerDetails({
   customer,
   conversation,
-  agents,
-  teams,
   onUpdateConversation,
   onUpdateCustomer,
   onClose,
@@ -417,15 +352,6 @@ export default function CustomerDetails({
         </button>
       </div>
       <div className="details-scroll">
-        {canManageConversation && (
-          <AssignmentPanel
-            agents={agents}
-            teams={teams}
-            conversation={conversation}
-            busy={busy}
-            onChange={update}
-          />
-        )}
         <section className="details-section">
           <h3 className="section-heading">{t('Hội thoại', 'Conversation')}</h3>
           <div className="detail-row">

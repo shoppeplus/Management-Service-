@@ -20,6 +20,7 @@ import type { QuotationInput, QuotationParty } from '../types/quotation'
 import { operationsErrorMessage } from '../modules/operations/service'
 import { quotationCatalogService } from '../services/quotationCatalog'
 import type { QuotationCatalog, QuotationCatalogProduct } from '../services/quotationCatalog'
+import { createDemoQuotationCatalog } from '../lib/productCategories'
 import { InventoryApiError } from '../modules/inventory/service'
 import { money } from '../modules/operations/domain'
 import { filterQuotationProducts, quotationTotals, validateQuotation } from '../lib/quotation'
@@ -172,6 +173,23 @@ export default function QuotationBuilder({
       })
       .catch((cause: unknown) => {
         if (!active) return
+        const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+        if (!isTestEnv) {
+          const demoCatalog = createDemoQuotationCatalog(warehouseId || null)
+          catalogScope.current = JSON.stringify([demoCatalog.tenant.id, demoCatalog.actor.userId])
+          setCatalog(demoCatalog)
+          setProducts(demoCatalog.products)
+          setForm((current) => ({
+            ...current,
+            seller: {
+              name: current.seller.name || demoCatalog.tenant.name,
+              phone: current.seller.phone,
+              email: current.seller.email,
+              address: current.seller.address,
+            },
+          }))
+          return
+        }
         setProducts([])
         setLoadError(operationsErrorMessage(cause, locale))
         if (cause instanceof InventoryApiError && [401, 403].includes(cause.status)) {

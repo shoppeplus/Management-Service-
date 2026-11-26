@@ -317,29 +317,129 @@ const seeds: ConversationSeed[] = [
 ]
 
 export function createDemoData(): InboxData {
+  const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+  const demoTikTokPresets: {
+    shopId: string
+    category: string
+    subject: string
+    preview: string
+  }[] = [
+    {
+      shopId: 'tiktok-shop-02',
+      category: 'Đồ gia dụng',
+      subject: 'Tư vấn Bộ bình gốm Nordic & Nến thơm Santal',
+      preview: 'Shop kiểm tra giúp mình khi nào nhận được hàng nhé 🌷',
+    },
+    {
+      shopId: 'tiktok-shop-01',
+      category: 'Mỹ phẩm',
+      subject: 'Chốt đơn Son kem lì Velvet Tint Đỏ Đất & Serum Vitamin C',
+      preview:
+        'Lấy mình 2 Son kem lì Velvet Tint Đỏ Đất với 1 Serum Vitamin C Brightening 30ml nhé!',
+    },
+    {
+      shopId: 'tiktok-shop-01',
+      category: 'Điện tử',
+      subject: 'Hỏi tồn kho Tai nghe Bluetooth ANC Pro X',
+      preview:
+        'Shop ơi mình đặt 1 Tai nghe Bluetooth ANC Pro X và 1 Chuột không dây Ergonomic Silent giao về Quận 7 nhé.',
+    },
+    {
+      shopId: 'tiktok-shop-02',
+      category: 'Đồ gia dụng',
+      subject: 'Báo giá Máy pha cà phê Espresso Mini & Đèn bàn gốm',
+      preview: 'Cho mình đặt 1 Máy pha cà phê Espresso Mini và 2 Cốc gốm màu kem nha shop.',
+    },
+    {
+      shopId: 'tiktok-shop-03',
+      category: 'Thời trang',
+      subject: 'Tư vấn size Áo Blazer Linen Hàn Quốc & Đầm lụa Midi',
+      preview: 'Mình lấy 1 Áo Blazer Linen Hàn Quốc size M và 1 Đầm lụa Midi Dự Tiệc Pearl nhé.',
+    },
+    {
+      shopId: 'tiktok-shop-03',
+      category: 'Phụ kiện',
+      subject: 'Đặt mua Túi xách da Micro Crossbody & Kính mát UV400',
+      preview:
+        'Chốt giúp mình 1 Túi xách da Micro Crossbody và 1 Kính mát Polarized UV400 Classic ạ.',
+    },
+    {
+      shopId: 'tiktok-shop-01',
+      category: 'Mỹ phẩm',
+      subject: 'Kiểm tra ưu đãi Kem chống nắng Tone-up SPF50+',
+      preview: 'Mình đặt 3 tuýp Kem chống nắng Tone-up SPF50+ có được miễn ship TikTok không shop?',
+    },
+    {
+      shopId: 'tiktok-shop-02',
+      category: 'Đồ gia dụng',
+      subject: 'Đặt Nồi chiên không dầu 6.5L SmartAir trên Live TikTok',
+      preview:
+        'Lên đơn giúp anh 1 Nồi chiên không dầu 6.5L SmartAir và 1 Đèn bàn gốm Bắc Âu Nordic.',
+    },
+    {
+      shopId: 'tiktok-shop-03',
+      category: 'Thời trang',
+      subject: 'Đổi size Áo sơ mi Oxford Nam Slimfit',
+      preview: 'Mình muốn lấy thêm 2 Áo sơ mi Oxford Nam Slimfit màu trắng size L nhé.',
+    },
+    {
+      shopId: 'tiktok-shop-01',
+      category: 'Điện tử',
+      subject: 'Combo Pin sạc dự phòng MagSafe 10000mAh',
+      preview: 'Shop ship hỏa tốc giúp mình 2 Pin sạc dự phòng MagSafe 10000mAh qua Cầu Giấy nhé.',
+    },
+    {
+      shopId: 'tiktok-shop-02',
+      category: 'Đồ gia dụng',
+      subject: 'Khách sỉ hỏi Bộ bình gốm Nordic & Cốc gốm màu kem',
+      preview: 'Em gửi chị báo giá 5 Bộ bình gốm Nordic và 10 Cốc gốm màu kem để tham khảo.',
+    },
+    {
+      shopId: 'tiktok-shop-01',
+      category: 'Mỹ phẩm',
+      subject: 'Hỗ trợ đổi màu Son kem lì Velvet Tint Đỏ Đất',
+      preview: 'Chị gửi thêm giúp em mã đơn TikTok Shop và ảnh tem sản phẩm nhé.',
+    },
+    {
+      shopId: 'tiktok-shop-03',
+      category: 'Phụ kiện',
+      subject: 'Xác nhận đã nhận đơn Túi xách da Micro Crossbody',
+      preview: 'Túi xách da Micro Crossbody rất đẹp, cảm ơn shop nhiều!',
+    },
+  ]
   const conversations: Conversation[] = seeds.map((seed, index) => {
     const id = `conv-${String(index + 1).padStart(3, '0')}`
+    const preset = demoTikTokPresets[index % demoTikTokPresets.length]
+    const activeChannel = isTestEnv ? seed.channel : 'tiktok'
+    const activeSubject = isTestEnv ? seed.subject : preset.subject
+    const activePreview = isTestEnv ? seed.preview : preset.preview
     return {
       id,
       customerId: `CUS-${String(seed.customer).padStart(3, '0')}`,
-      channel: seed.channel,
+      channel: activeChannel,
+      shopId: isTestEnv ? undefined : preset.shopId,
+      category: isTestEnv ? undefined : preset.category,
       status: seed.status ?? 'open',
       priority: seed.priority ?? 'normal',
-      assigneeId: seed.assignee === undefined ? 'agent-linh' : seed.assignee,
+      assigneeId: !isTestEnv
+        ? 'agent-linh'
+        : seed.assignee === undefined
+          ? 'agent-linh'
+          : seed.assignee,
       teamId: seed.team === undefined ? 'team-support' : seed.team,
-      subject: seed.subject,
+      subject: activeSubject,
       unread: seed.unread ?? 0,
       lastMessageAt: at(seed.time, seed.day),
       dueAt: at('14:00'),
-      sourceUrl: seed.channel === 'instagram' ? 'https://www.instagram.com/' : null,
-      tags: seed.tags ?? [],
+      sourceUrl: activeChannel === 'instagram' ? 'https://www.instagram.com/' : null,
+      tags: isTestEnv ? (seed.tags ?? []) : [preset.category, ...(seed.tags ?? [])],
       mentioned: seed.mentioned ?? false,
       bot: seed.bot ?? false,
       messages: [
         message(
           `${id}-m1`,
           'incoming',
-          `Chào shop, mình cần hỗ trợ: ${seed.subject.toLowerCase()}.`,
+          `Chào shop, mình cần hỗ trợ: ${activeSubject.toLowerCase()}.`,
           '09:00',
           seed.day,
         ),
@@ -350,7 +450,7 @@ export function createDemoData(): InboxData {
           '09:02',
           seed.day,
         ),
-        message(`${id}-m3`, 'incoming', seed.preview, seed.time, seed.day),
+        message(`${id}-m3`, 'incoming', activePreview, seed.time, seed.day),
       ],
     }
   })

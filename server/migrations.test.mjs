@@ -105,7 +105,7 @@ describe('Inventory schema upgrades', () => {
         { id: 'priced-sku', price: 150000, price_known: 1 },
         { id: 'sku', price: 0, price_known: 0 },
       ])
-      expect(db.prepare('SELECT COUNT(*) AS total FROM schema_migrations').get().total).toBe(19)
+      expect(db.prepare('SELECT COUNT(*) AS total FROM schema_migrations').get().total).toBe(20)
       expect(
         db
           .prepare('SELECT version FROM schema_migrations ORDER BY version')
@@ -131,6 +131,7 @@ describe('Inventory schema upgrades', () => {
         '017_accounting_ledger.sql',
         '018_stock_restock_requests.sql',
         '019_accountant_role.sql',
+        '020_tiktok_oauth.sql',
       ])
       expect(
         db

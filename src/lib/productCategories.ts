@@ -1,4 +1,6 @@
 import type { Conversation } from '../types/inbox'
+import type { InventorySnapshot } from '../modules/inventory/types'
+import type { QuotationCatalog } from '../services/quotationCatalog'
 
 export interface CatalogProductItem {
   id: string
@@ -446,4 +448,228 @@ export function filterCategoryTree(
     }
     return acc
   }, [])
+}
+
+const DEMO_EXTRA_PRODUCTS: CatalogProductItem[] = [
+  {
+    id: 'PROD-NORDIC-01',
+    sku: 'GD-NOR-01',
+    name: 'Bộ bình gốm Nordic',
+    priceVnd: 680000,
+    stock: 28,
+    categoryName: 'Đồ gia dụng',
+    subCategoryName: 'Đèn & Decor phòng',
+  },
+  {
+    id: 'PROD-CUP-02',
+    sku: 'GD-CUP-02',
+    name: 'Cốc gốm màu kem',
+    priceVnd: 195000,
+    stock: 64,
+    categoryName: 'Đồ gia dụng',
+    subCategoryName: 'Đèn & Decor phòng',
+  },
+  {
+    id: 'PROD-CANDLE-03',
+    sku: 'GD-CAN-03',
+    name: 'Nến thơm Santal',
+    priceVnd: 340000,
+    stock: 42,
+    categoryName: 'Đồ gia dụng',
+    subCategoryName: 'Đèn & Decor phòng',
+  },
+]
+
+export function listAllDemoCatalogProducts(): CatalogProductItem[] {
+  return [...PRODUCT_CATEGORY_TREE.flatMap((node) => node.products), ...DEMO_EXTRA_PRODUCTS]
+}
+
+export function createDemoInventorySnapshot(): InventorySnapshot {
+  const catalogItems = listAllDemoCatalogProducts()
+  const nowIso = '2026-11-17T09:00:00.000Z'
+  const whMain = 'WH-DEMO-HN'
+  const whHcm = 'WH-DEMO-HCM'
+
+  const skus: InventorySnapshot['skus'] = catalogItems.map((item) => ({
+    id: item.id,
+    sku: item.sku,
+    name: item.name,
+    category: item.categoryName,
+    unit: 'cái',
+    serialTracked: false,
+    reorderPoint: 10,
+    maxStock: 200,
+    leadTimeDays: 3,
+    warrantyMonths: 12,
+    active: true,
+    price: item.priceVnd,
+    priceKnown: true,
+    metadata: {
+      description: `${item.name} · Danh mục ${item.categoryName} (${item.subCategoryName})`,
+    },
+  }))
+
+  const balances: InventorySnapshot['balances'] = catalogItems.map((item) => {
+    const avgCost = Math.round(item.priceVnd * 0.65)
+    return {
+      warehouseId: whMain,
+      locationId: 'LOC-HN-A1',
+      skuId: item.id,
+      onHand: item.stock,
+      reserved: 2,
+      damaged: 0,
+      warranty: 0,
+      available: Math.max(0, item.stock - 2),
+      inventoryValue: item.stock * avgCost,
+      averageCost: avgCost,
+      updatedAt: nowIso,
+    }
+  })
+
+  return {
+    tenant: {
+      id: 'TENANT-DEMO-TT',
+      name: 'SmartSales TikTok Shop Workspace',
+      config: {
+        inventoryEnabled: true,
+        multiWarehouseEnabled: true,
+        staleDays: 30,
+      },
+    },
+    actor: {
+      userId: 'USR-DEMO-01',
+      role: 'admin',
+    },
+    permissions: [
+      'inventory.read',
+      'product.manage',
+      'warehouse.manage',
+      'supplier.manage',
+      'purchase.create',
+      'purchase.approve',
+      'purchase.receive',
+      'salesOrder.create',
+      'salesOrder.confirm',
+      'salesOrder.fulfill',
+      'salesOrder.return',
+      'salesOrder.cancel',
+      'stock.adjust',
+      'stock.transfer',
+      'stock.count',
+      'ledger.read',
+      'report.read',
+      'audit.read',
+    ],
+    warehouses: [
+      {
+        id: whMain,
+        code: 'KHO-TT-01',
+        name: 'Kho Tổng TikTok Shop Hà Nội',
+        address: 'Quận Cầu Giấy, Hà Nội',
+        active: true,
+      },
+      {
+        id: whHcm,
+        code: 'KHO-TT-02',
+        name: 'Kho Fulfillment TikTok TP.HCM',
+        address: 'Quận 7, TP.HCM',
+        active: true,
+      },
+    ],
+    locations: [
+      {
+        id: 'LOC-HN-A1',
+        warehouseId: whMain,
+        code: 'A1-01',
+        name: 'Kệ A1 · Hàng TikTok Live',
+      },
+    ],
+    suppliers: [],
+    skus,
+    balances,
+    documents: [],
+    purchaseRequests: [],
+    purchaseOrders: [],
+    salesOrders: [
+      {
+        id: 'SO-DEMO-001',
+        number: 'SO-TT-2048',
+        warehouseId: whMain,
+        customerReference: 'Nguyễn Mai Anh (CUS-001)',
+        reference: 'conversation:conv-001',
+        note: 'Đơn TikTok Shop #SS-2048 · Ưu tiên đóng gói quà tặng',
+        status: 'confirmed',
+        fulfillmentDocumentId: null,
+        createdAt: nowIso,
+        lines: [
+          {
+            id: 'SOL-DEMO-01',
+            skuId: 'PROD-NORDIC-01',
+            sku: 'GD-NOR-01',
+            name: 'Bộ bình gốm Nordic',
+            quantity: 1,
+            unitPrice: 680000,
+            locationId: 'LOC-HN-A1',
+            reservationId: 'RES-DEMO-01',
+            returnedQuantity: 0,
+            returnableQuantity: 0,
+          },
+          {
+            id: 'SOL-DEMO-02',
+            skuId: 'PROD-CANDLE-03',
+            sku: 'GD-CAN-03',
+            name: 'Nến thơm Santal',
+            quantity: 1,
+            unitPrice: 340000,
+            locationId: 'LOC-HN-A1',
+            reservationId: 'RES-DEMO-02',
+            returnedQuantity: 0,
+            returnableQuantity: 0,
+          },
+        ],
+      },
+    ],
+    ledger: [],
+    reservations: [],
+    counts: [],
+    serials: [],
+    warranties: [],
+    auditEvents: [],
+    metrics: {},
+  }
+}
+
+export function createDemoQuotationCatalog(warehouseId?: string | null): QuotationCatalog {
+  const snapshot = createDemoInventorySnapshot()
+  const activeWhId = warehouseId ?? null
+  return {
+    tenant: {
+      id: snapshot.tenant.id,
+      name: snapshot.tenant.name,
+    },
+    actor: snapshot.actor,
+    warehouses: snapshot.warehouses.map((w) => ({
+      id: w.id,
+      code: w.code,
+      name: w.name,
+    })),
+    warehouseId: activeWhId,
+    asOf: '2026-11-17T09:00:00.000Z',
+    products: snapshot.skus.map((sku) => {
+      const stock = snapshot.balances
+        .filter((b) => b.skuId === sku.id && (!activeWhId || b.warehouseId === activeWhId))
+        .reduce((sum, b) => sum + b.available, 0)
+      return {
+        id: sku.id,
+        sku: sku.sku,
+        name: sku.name,
+        category: sku.category,
+        unit: sku.unit,
+        price: sku.price ?? 0,
+        stock,
+        warrantyMonths: sku.warrantyMonths ?? 12,
+        description: sku.metadata?.description,
+      }
+    }),
+  }
 }

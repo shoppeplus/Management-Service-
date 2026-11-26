@@ -36,8 +36,6 @@ import { CHANNELS, CURRENT_AGENT_ID, VIEW_LABELS } from '../lib/inbox'
 import { ChannelIcon } from './shared'
 import AccountMenu from './AccountMenu'
 import type { Channel } from '../types/inbox'
-import { PRODUCT_CATEGORY_TREE, matchesCategoryFilter } from '../lib/productCategories'
-import { DEFAULT_TIKTOK_SHOPS, listPublicTikTokShops } from '../lib/tiktokShops'
 import { useI18n } from '../i18n'
 import { APP_MODE } from '../services/inboxService'
 import { canAccessModule, getDefaultRoute, useAppAccess } from '../modules/operations/access'
@@ -367,6 +365,8 @@ export function ChannelBar({
   canManageConnections?: boolean
 }) {
   const { locale, setLocale, t, label } = useI18n()
+  const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+  const visibleChannels = CHANNELS.filter((c) => isTestEnv || c.id === 'tiktok')
   return (
     <header className="channel-bar">
       <div className="workspace-brand">
@@ -388,7 +388,7 @@ export function ChannelBar({
         </span>
       </div>
       <div className="channel-integrations" aria-label={t('Lọc theo kênh', 'Filter by channel')}>
-        {CHANNELS.map((c) => (
+        {visibleChannels.map((c) => (
           <button
             key={c.id}
             className={`integration-button ${channel === c.id ? 'active' : ''}`}
@@ -497,27 +497,6 @@ export function InboxSidebar({
     }
   }, [mobileOpen])
   const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
-  const [activeCategory, setActiveCategory] = useState('all')
-  const [activeShopId, setActiveShopId] = useState('all')
-  const tiktokShops = listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)
-
-  useEffect(() => {
-    const syncState = (event: Event) => {
-      const detail = (event as CustomEvent<{ category?: string; shopId?: string }>).detail
-      if (detail?.category !== undefined) setActiveCategory(detail.category)
-      if (detail?.shopId !== undefined) setActiveShopId(detail.shopId)
-    }
-    window.addEventListener('smartsales:inbox-filter-state', syncState)
-    return () => window.removeEventListener('smartsales:inbox-filter-state', syncState)
-  }, [])
-
-  const applySalesFilter = (patch: {
-    category?: string
-    shopId?: string
-    channel?: Channel | 'all'
-  }) => {
-    window.dispatchEvent(new CustomEvent('smartsales:inbox-filter', { detail: patch }))
-  }
 
   const count = (v: InboxView) =>
     data.conversations.filter((c) =>
@@ -533,10 +512,6 @@ export function InboxSidebar({
             (v === 'teams' && c.teamId) ||
             (v === 'views' && ['high', 'urgent'].includes(c.priority))),
     ).length
-  const categoryCount = (categoryName: string) =>
-    data.conversations.filter(
-      (c) => c.status !== 'closed' && matchesCategoryFilter(c, categoryName),
-    ).length
   const primary = isTestEnv
     ? ([
         { id: 'mine', icon: Inbox },
@@ -547,11 +522,15 @@ export function InboxSidebar({
       ] as const)
     : ([
         { id: 'mine', icon: Inbox },
-        { id: 'all', icon: MessageSquare },
-        { id: 'unassigned', icon: UsersRound },
         { id: 'views', icon: ListFilter },
         { id: 'archive', icon: Archive },
       ] as const)
+
+  useEffect(() => {
+    if (!isTestEnv && view === 'all') {
+      onView('mine')
+    }
+  }, [isTestEnv, onView, view])
   const secondary = [
     { id: 'teams', icon: Users },
     { id: 'views', icon: ListFilter },
@@ -620,7 +599,7 @@ export function InboxSidebar({
             </button>
           ))}
         </div>
-        {isTestEnv ? (
+        {isTestEnv && (
           <>
             <div className="sidebar-section-label">{t('QUẢN LÝ', 'MANAGE')}</div>
             <div className="inbox-nav-group secondary-group">
@@ -634,63 +613,6 @@ export function InboxSidebar({
                   <Icon size={17} />
                   <span className="inbox-nav-label">{label(VIEW_LABELS[id])}</span>
                   <span className="inbox-count">{count(id)}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="sidebar-section-label">
-              {t('DANH MỤC BÁN HÀNG', 'SALES CATEGORIES')}
-            </div>
-            <div className="inbox-nav-group secondary-group">
-              <button
-                type="button"
-                title={t('Tất cả danh mục', 'All categories')}
-                className={`inbox-nav-item ${activeCategory === 'all' ? 'active' : ''}`}
-                onClick={() => applySalesFilter({ category: 'all' })}
-              >
-                <Package size={16} />
-                <span className="inbox-nav-label">{t('Tất cả danh mục', 'All categories')}</span>
-                <span className="inbox-count">
-                  {data.conversations.filter((c) => c.status !== 'closed').length}
-                </span>
-              </button>
-              {PRODUCT_CATEGORY_TREE.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  title={cat.name}
-                  className={`inbox-nav-item ${activeCategory === cat.name ? 'active' : ''}`}
-                  onClick={() => applySalesFilter({ category: cat.name })}
-                >
-                  <ShoppingBag size={16} />
-                  <span className="inbox-nav-label">{cat.name}</span>
-                  <span className="inbox-count">{categoryCount(cat.name)}</span>
-                </button>
-              ))}
-            </div>
-            <div className="sidebar-section-label">
-              {t('TIKTOK SHOP PHỤ TRÁCH', 'ASSIGNED TIKTOK SHOPS')}
-            </div>
-            <div className="inbox-nav-group secondary-group">
-              {tiktokShops.map((shop) => (
-                <button
-                  key={shop.shopId}
-                  type="button"
-                  title={shop.accountName}
-                  className={`inbox-nav-item ${activeShopId === shop.shopId ? 'active' : ''}`}
-                  onClick={() =>
-                    applySalesFilter({
-                      channel: 'tiktok',
-                      shopId: activeShopId === shop.shopId ? 'all' : shop.shopId,
-                    })
-                  }
-                >
-                  <ChannelIcon channel="tiktok" size={15} />
-                  <span className="inbox-nav-label">
-                    {shop.accountName.replace('TikTok Shop ', 'Shop ')}
-                  </span>
                 </button>
               ))}
             </div>

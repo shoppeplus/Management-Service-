@@ -201,6 +201,8 @@ export function SalesOrderCreateForm({
   initialReference = '',
   initialNote = '',
   initialLines = [],
+  formClassName = '',
+  modalClassName = '',
   onClose,
   onCreated,
 }: {
@@ -211,6 +213,8 @@ export function SalesOrderCreateForm({
   initialReference?: string
   initialNote?: string
   initialLines?: SalesOrderSeedLine[]
+  formClassName?: string
+  modalClassName?: string
   onClose: () => void
   onCreated?: (id: string) => void
 }) {
@@ -290,11 +294,15 @@ export function SalesOrderCreateForm({
     <Modal
       title={t('Tạo đơn hàng', 'Create order')}
       wide
+      className={modalClassName}
       onClose={() => {
         if (!busy) onClose()
       }}
     >
-      <form className="inv-form modal-body" onSubmit={(event) => void submit(event)}>
+      <form
+        className={`inv-form modal-body ${formClassName}`}
+        onSubmit={(event) => void submit(event)}
+      >
         <p className="inv-note">
           {t(
             'Sản phẩm và giá bán lấy từ danh mục kho. Xác nhận đơn sẽ giữ tồn; chỉ xuất kho mới ghi giảm tồn.',
@@ -302,39 +310,41 @@ export function SalesOrderCreateForm({
           )}
         </p>
         <fieldset disabled={busy}>
-          <label>
-            <span>{t('Kho xuất', 'Source warehouse')} *</span>
-            <select
-              required
-              value={warehouse}
-              onChange={(event) => {
-                setWarehouse(event.target.value)
-                setLines((current) => current.map((line) => ({ ...line, locationId: '' })))
-              }}
-            >
-              <option value="">{t('Chọn kho…', 'Select warehouse…')}</option>
-              {data.warehouses
-                .filter((item) => item.active)
-                .map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <label>
-            <span>{t('Mã hoặc tên khách hàng', 'Customer code or name')} *</span>
-            <input
-              name="customerReference"
-              required
-              maxLength={200}
-              defaultValue={initialCustomerReference}
-            />
-          </label>
-          <label>
-            <span>{t('Mã tham chiếu đơn ngoài', 'External order reference')}</span>
-            <input name="reference" maxLength={200} defaultValue={initialReference} />
-          </label>
+          <div className="conversation-sales-order-meta">
+            <label>
+              <span>{t('Kho xuất', 'Source warehouse')} *</span>
+              <select
+                required
+                value={warehouse}
+                onChange={(event) => {
+                  setWarehouse(event.target.value)
+                  setLines((current) => current.map((line) => ({ ...line, locationId: '' })))
+                }}
+              >
+                <option value="">{t('Chọn kho…', 'Select warehouse…')}</option>
+                {data.warehouses
+                  .filter((item) => item.active)
+                  .map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              <span>{t('Mã hoặc tên khách hàng', 'Customer code or name')} *</span>
+              <input
+                name="customerReference"
+                required
+                maxLength={200}
+                defaultValue={initialCustomerReference}
+              />
+            </label>
+            <label>
+              <span>{t('Mã tham chiếu đơn ngoài', 'External order reference')}</span>
+              <input name="reference" maxLength={200} defaultValue={initialReference} />
+            </label>
+          </div>
           {!pricedSkus.length && (
             <p className="inv-note" role="status">
               {t(
@@ -343,101 +353,112 @@ export function SalesOrderCreateForm({
               )}
             </p>
           )}
-          {lines.map((line, index) => (
-            <section className="inv-document-line" key={line.key}>
-              <label>
-                <span>
-                  {t('SKU dòng', 'Line SKU')} {index + 1} *
-                </span>
-                <select
-                  required
-                  value={line.skuId}
-                  onChange={(event) => update(line.key, { skuId: event.target.value })}
-                >
-                  <option value="">{t('Chọn SKU…', 'Select SKU…')}</option>
-                  {pricedSkus.map((item) => (
-                    <option value={item.id} key={item.id}>
-                      {item.sku} · {item.name} · {money(item.price ?? 0, locale)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span>
-                  {t('Vị trí dòng', 'Line location')} {index + 1}
-                </span>
-                <select
-                  value={line.locationId}
-                  onChange={(event) => update(line.key, { locationId: event.target.value })}
-                >
-                  <option value="">{t('Mặc định của kho', 'Warehouse default')}</option>
-                  {data.locations
-                    .filter((item) => item.warehouseId === warehouse)
-                    .map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.code} · {item.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <label>
-                <span>
-                  {t('Số lượng dòng', 'Line quantity')} {index + 1} *
-                </span>
-                <input
-                  required
-                  type="number"
-                  min={1}
-                  max={999999}
-                  step={1}
-                  value={line.quantity}
-                  onChange={(event) => update(line.key, { quantity: event.target.value })}
-                />
-              </label>
-              <p className="inv-note">
-                {line.skuId
-                  ? t(
-                      `Giá bán: ${money(data.skus.find((sku) => sku.id === line.skuId)?.price ?? 0, locale)} · Khả dụng: ${available(line.skuId, line.locationId)}`,
-                      `Price: ${money(data.skus.find((sku) => sku.id === line.skuId)?.price ?? 0, locale)} · Available: ${available(line.skuId, line.locationId)}`,
-                    )
-                  : t(
-                      'Giá bán được lấy từ danh mục sản phẩm.',
-                      'The selling price is taken from the product catalog.',
-                    )}
-              </p>
-              {lines.length > 1 && (
-                <button
-                  type="button"
-                  className="button button-secondary"
-                  onClick={() =>
-                    setLines((current) => current.filter((item) => item.key !== line.key))
-                  }
-                >
-                  <Trash2 size={14} />
-                  {t('Xóa dòng', 'Remove line')} {index + 1}
-                </button>
-              )}
-            </section>
-          ))}
-          <button
-            className="button button-secondary"
-            type="button"
-            disabled={lines.length >= 100}
-            onClick={() =>
-              setLines((current) => [
-                ...current,
-                {
-                  key: Math.max(...current.map((line) => line.key)) + 1,
-                  skuId: '',
-                  quantity: '1',
-                  locationId: '',
-                },
-              ])
-            }
-          >
-            {t('Thêm dòng hàng', 'Add order line')}
-          </button>
-          <label>
+          <section className="conversation-sales-order-lines">
+            <div className="conversation-sales-order-lines-heading">
+              <div>
+                <h3>{t('Sản phẩm trong đơn', 'Order items')}</h3>
+                <p>{t('Chọn SKU và số lượng cần bán.', 'Choose products and quantities.')}</p>
+              </div>
+              <button
+                className="button button-secondary"
+                type="button"
+                disabled={lines.length >= 100}
+                onClick={() =>
+                  setLines((current) => [
+                    ...current,
+                    {
+                      key: Math.max(...current.map((line) => line.key)) + 1,
+                      skuId: '',
+                      quantity: '1',
+                      locationId: '',
+                    },
+                  ])
+                }
+              >
+                <Plus size={14} />
+                {t('Thêm dòng hàng', 'Add order line')}
+              </button>
+            </div>
+            <div className="conversation-sales-order-line-list">
+              {lines.map((line, index) => (
+                <section className="inv-document-line" key={line.key}>
+                  <label>
+                    <span>
+                      {t('SKU dòng', 'Line SKU')} {index + 1} *
+                    </span>
+                    <select
+                      required
+                      value={line.skuId}
+                      onChange={(event) => update(line.key, { skuId: event.target.value })}
+                    >
+                      <option value="">{t('Chọn SKU…', 'Select SKU…')}</option>
+                      {pricedSkus.map((item) => (
+                        <option value={item.id} key={item.id}>
+                          {item.sku} · {item.name} · {money(item.price ?? 0, locale)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>
+                      {t('Vị trí dòng', 'Line location')} {index + 1}
+                    </span>
+                    <select
+                      value={line.locationId}
+                      onChange={(event) => update(line.key, { locationId: event.target.value })}
+                    >
+                      <option value="">{t('Mặc định của kho', 'Warehouse default')}</option>
+                      {data.locations
+                        .filter((item) => item.warehouseId === warehouse)
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.code} · {item.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>
+                      {t('Số lượng dòng', 'Line quantity')} {index + 1} *
+                    </span>
+                    <input
+                      required
+                      type="number"
+                      min={1}
+                      max={999999}
+                      step={1}
+                      value={line.quantity}
+                      onChange={(event) => update(line.key, { quantity: event.target.value })}
+                    />
+                  </label>
+                  <p className="inv-note">
+                    {line.skuId
+                      ? t(
+                          `Giá bán: ${money(data.skus.find((sku) => sku.id === line.skuId)?.price ?? 0, locale)} · Khả dụng: ${available(line.skuId, line.locationId)}`,
+                          `Price: ${money(data.skus.find((sku) => sku.id === line.skuId)?.price ?? 0, locale)} · Available: ${available(line.skuId, line.locationId)}`,
+                        )
+                      : t(
+                          'Giá bán được lấy từ danh mục sản phẩm.',
+                          'The selling price is taken from the product catalog.',
+                        )}
+                  </p>
+                  {lines.length > 1 && (
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      onClick={() =>
+                        setLines((current) => current.filter((item) => item.key !== line.key))
+                      }
+                    >
+                      <Trash2 size={14} />
+                      {t('Xóa dòng', 'Remove line')} {index + 1}
+                    </button>
+                  )}
+                </section>
+              ))}
+            </div>
+          </section>
+          <label className="conversation-sales-order-note">
             <span>{t('Ghi chú', 'Note')}</span>
             <textarea name="note" maxLength={2000} rows={2} defaultValue={initialNote} />
           </label>

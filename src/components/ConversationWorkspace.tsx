@@ -19,7 +19,6 @@ import {
   Smile,
   Sparkles,
   StickyNote,
-  Users,
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -28,7 +27,6 @@ import type {
   Conversation,
   ConversationPatch,
   Customer,
-  InboxData,
   Message,
   SendMessageInput,
 } from '../types/inbox'
@@ -47,7 +45,6 @@ import { draftNamespace, readDraft, saveDraft } from '../lib/drafts'
 import { useI18n } from '../i18n'
 
 interface WorkspaceProps {
-  data: InboxData
   conversation: Conversation
   customer: Customer
   detailsOpen: boolean
@@ -129,7 +126,6 @@ export function ConversationWorkspace(props: WorkspaceProps) {
   )
 }
 export function ConversationHeader({
-  data,
   conversation: c,
   customer,
   detailsOpen,
@@ -282,37 +278,6 @@ export function ConversationHeader({
       </header>
       {canManage && (
         <div className="conversation-toolbar">
-          <div className="toolbar-assignment">
-            <Users size={14} />
-            <select
-              disabled={busy}
-              aria-label={t('Phân công hội thoại', 'Assign conversation')}
-              value={c.assigneeId || ''}
-              onChange={(e) => void update({ assigneeId: e.target.value || null })}
-            >
-              <option value="">{t('Chưa phân công', 'Unassigned')}</option>
-              {data.agents.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={12} />
-            <span className="toolbar-divider" />
-            <select
-              disabled={busy}
-              aria-label={t('Phân công nhóm', 'Assign team')}
-              value={c.teamId || ''}
-              onChange={(e) => void update({ teamId: e.target.value || null })}
-            >
-              <option value="">{t('Chưa có nhóm', 'No team')}</option>
-              {data.teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
-          </div>
           <label className={`status-control status-${c.status}`}>
             <CircleCheck size={14} />
             <select

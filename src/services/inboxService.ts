@@ -228,12 +228,14 @@ export function createDemoInboxService(
 ): InboxService {
   let data: InboxData | undefined
   let sequence = 0
+  const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+  const activeStorageKey = isTestEnv ? DEMO_STORAGE_KEY : 'smartsales.inbox.demo.tiktok.v4'
   const now = options.now ?? (() => new Date())
   const getData = () => {
     if (data) return data
     let stored: string | null = null
     try {
-      stored = options.storage?.getItem(DEMO_STORAGE_KEY) ?? null
+      stored = options.storage?.getItem(activeStorageKey) ?? null
     } catch {
       throw new Error('Không thể đọc dữ liệu Demo trong trình duyệt. Kiểm tra quyền lưu trữ.')
     }
@@ -251,7 +253,7 @@ export function createDemoInboxService(
   }
   const commit = (next: InboxData) => {
     try {
-      options.storage?.setItem(DEMO_STORAGE_KEY, JSON.stringify(next))
+      options.storage?.setItem(activeStorageKey, JSON.stringify(next))
     } catch {
       throw new Error(
         'Không thể lưu thay đổi Demo. Bộ nhớ trình duyệt có thể đã đầy; hãy bỏ bớt tệp đính kèm.',

@@ -1,11 +1,11 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'node:crypto'
-import { DomainError } from './database.mjs'
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'node:crypto'
+import { DomainError, transaction } from './database.mjs'
 
 const fail = (status, code, message) => {
   throw new DomainError(status, code, message)
 }
 
-const providerNames = ['gemini', 'telegram', 'shopee', 'lazada', 'tiktokshop']
+const providerNames = ['gemini', 'telegram', 'shopee', 'lazada', 'tiktok', 'tiktokshop']
 const providers = new Set(providerNames)
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
 const hasControls = (value) =>
@@ -33,6 +33,12 @@ const cleanSecret = (value, label) => {
 
 const cleanId = (value, label) => {
   if (typeof value !== 'string' || !/^\d{1,30}$/.test(value.trim()))
+    fail(422, 'INVALID_CREDENTIAL', `${label} không hợp lệ.`)
+  return value.trim()
+}
+
+const cleanClientKey = (value, label) => {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9._-]{1,128}$/.test(value.trim()))
     fail(422, 'INVALID_CREDENTIAL', `${label} không hợp lệ.`)
   return value.trim()
 }
@@ -70,7 +76,15 @@ export function createIntegrationSettings(
       telegram: { botToken: process.env.TELEGRAM_BOT_TOKEN || '' },
       shopee: {},
       lazada: {},
+      tiktok: {
+        clientKey: process.env.TIKTOK_CLIENT_KEY || '',
+        clientSecret: process.env.TIKTOK_CLIENT_SECRET || '',
+      },
       tiktokshop: {},
+    },
+    redirectUris = {
+      tiktok: process.env.TIKTOK_REDIRECT_URI || '',
+      tiktokshop: process.env.TIKTOK_SHOP_REDIRECT_URI || '',
     },
     now = () => new Date(),
   } = {},
@@ -90,6 +104,15 @@ export function createIntegrationSettings(
   const removeRow = db.prepare(
     'DELETE FROM integration_credentials WHERE tenant_id=? AND provider=?',
   )
+  const insertOAuthState = db.prepare(
+    `INSERT INTO tiktok_oauth_states(
+      state_hash,tenant_id,user_id,provider,ciphertext,nonce,auth_tag,expires_at,created_at
+    ) VALUES(?,?,?,?,?,?,?,?,?)`,
+  )
+  const getOAuthState = db.prepare(
+    'SELECT * FROM tiktok_oauth_states WHERE state_hash=? AND provider=?',
+  )
+  const removeOAuthState = db.prepare('DELETE FROM tiktok_oauth_states WHERE state_hash=?')
 
   const requireAdmin = (actor) => {
     if (!actor?.tenantId || !actor?.userId || !['owner', 'admin'].includes(actor.role))
@@ -164,15 +187,54 @@ export function createIntegrationSettings(
         region,
       }
     }
+    if (provider === 'tiktok') {
+      const fields = [
+        'clientKey',
+        'clientSecret',
+        'accessToken',
+        'refreshToken',
+        'openId',
+        'scope',
+        'accessTokenExpiresAt',
+        'refreshTokenExpiresAt',
+      ]
+      if (Object.keys(input).some((field) => !fields.includes(field)))
+        fail(400, 'INVALID_FIELDS', 'Thông tin TikTok có trường không được hỗ trợ.')
+      return {
+        clientKey: cleanClientKey(input.clientKey, 'TikTok Client Key'),
+        clientSecret: cleanSecret(input.clientSecret, 'TikTok Client Secret'),
+        accessToken: cleanSecret(input.accessToken, 'TikTok access token'),
+        refreshToken: optionalSecret(input.refreshToken, 'TikTok refresh token'),
+        openId: cleanClientKey(input.openId, 'TikTok open ID'),
+        scope: typeof input.scope === 'string' ? input.scope.slice(0, 1000) : '',
+        accessTokenExpiresAt:
+          typeof input.accessTokenExpiresAt === 'string' ? input.accessTokenExpiresAt : '',
+        refreshTokenExpiresAt:
+          typeof input.refreshTokenExpiresAt === 'string' ? input.refreshTokenExpiresAt : '',
+      }
+    }
     if (provider === 'tiktokshop') {
-      const fields = ['appKey', 'appSecret', 'accessToken', 'shopCipher']
+      const fields = [
+        'appKey',
+        'appSecret',
+        'accessToken',
+        'refreshToken',
+        'shopCipher',
+        'accessTokenExpiresAt',
+        'refreshTokenExpiresAt',
+      ]
       if (Object.keys(input).some((field) => !fields.includes(field)))
         fail(400, 'INVALID_FIELDS', 'Thông tin TikTok Shop có trường không được hỗ trợ.')
       return {
         appKey: cleanId(input.appKey, 'TikTok Shop App Key'),
         appSecret: cleanSecret(input.appSecret, 'TikTok Shop App Secret'),
         accessToken: cleanSecret(input.accessToken, 'TikTok Shop access token'),
+        refreshToken: optionalSecret(input.refreshToken, 'TikTok Shop refresh token'),
         shopCipher: optionalSecret(input.shopCipher, 'TikTok Shop shop cipher'),
+        accessTokenExpiresAt:
+          typeof input.accessTokenExpiresAt === 'string' ? input.accessTokenExpiresAt : '',
+        refreshTokenExpiresAt:
+          typeof input.refreshTokenExpiresAt === 'string' ? input.refreshTokenExpiresAt : '',
       }
     }
     if (Object.keys(input).some((field) => field !== 'botToken'))
@@ -199,6 +261,17 @@ export function createIntegrationSettings(
           headers: { Accept: 'application/json' },
           ...timeout,
         })
+      } else if (provider === 'tiktok') {
+        response = await fetchImpl(
+          'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name',
+          {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${credentials.accessToken}`,
+            },
+            ...timeout,
+          },
+        )
       } else if (provider === 'shopee') {
         const path = '/api/v2/shop/get_shop_info'
         const timestamp = Math.floor(now().getTime() / 1000)
@@ -295,6 +368,16 @@ export function createIntegrationSettings(
         fail(422, 'INTEGRATION_CREDENTIAL_REJECTED', 'Token không phải bot Telegram hợp lệ.')
       return { accountName: `@${safeAccountName(result.result.username, 'Telegram bot')}` }
     }
+    if (provider === 'tiktok') {
+      if (typeof result?.data?.user?.open_id !== 'string')
+        fail(422, 'INTEGRATION_CREDENTIAL_REJECTED', 'TikTok không chấp nhận quyền người dùng.')
+      return {
+        accountName: safeAccountName(
+          result.data.user.display_name,
+          `TikTok ${result.data.user.open_id.slice(-6)}`,
+        ),
+      }
+    }
     if (provider === 'shopee') {
       if (!isRecord(result?.response) || result.error)
         fail(
@@ -332,10 +415,16 @@ export function createIntegrationSettings(
       fail(422, 'INTEGRATION_CREDENTIAL_REJECTED', 'TikTok Shop không trả về shop được cấp quyền.')
     return {
       accountName: safeAccountName(shops[0]?.shop_name || shops[0]?.shop_id, 'TikTok Shop'),
+      shopCipher:
+        typeof shops[0]?.cipher === 'string'
+          ? shops[0].cipher
+          : typeof shops[0]?.shop_cipher === 'string'
+            ? shops[0].shop_cipher
+            : '',
     }
   }
 
-  const encrypt = (tenantId, provider, credentials) => {
+  const encryptWithAad = (aad, value) => {
     if (!key)
       fail(
         503,
@@ -344,16 +433,115 @@ export function createIntegrationSettings(
       )
     const nonce = randomBytes(12)
     const cipher = createCipheriv('aes-256-gcm', key, nonce)
-    cipher.setAAD(Buffer.from(`${tenantId}:${provider}`))
-    const ciphertext = Buffer.concat([
-      cipher.update(JSON.stringify(credentials), 'utf8'),
-      cipher.final(),
-    ])
+    cipher.setAAD(Buffer.from(aad))
+    const ciphertext = Buffer.concat([cipher.update(JSON.stringify(value), 'utf8'), cipher.final()])
     return {
       ciphertext: ciphertext.toString('base64'),
       nonce: nonce.toString('base64'),
       authTag: cipher.getAuthTag().toString('base64'),
     }
+  }
+
+  const encrypt = (tenantId, provider, credentials) =>
+    encryptWithAad(`${tenantId}:${provider}`, credentials)
+
+  const redirectUriFor = (provider) => {
+    const redirectUri = redirectUris[provider]
+    let parsed
+    try {
+      parsed = new URL(redirectUri)
+    } catch {
+      fail(503, 'OAUTH_REDIRECT_NOT_CONFIGURED', `Chưa cấu hình URL chuyển hướng ${provider}.`)
+    }
+    if (
+      parsed.protocol !== 'https:' ||
+      parsed.username ||
+      parsed.password ||
+      parsed.search ||
+      parsed.hash
+    )
+      fail(503, 'OAUTH_REDIRECT_INVALID', `URL chuyển hướng ${provider} phải là HTTPS tĩnh.`)
+    return parsed.href
+  }
+
+  const readOAuthCredentials = (row) => {
+    if (!key)
+      fail(503, 'INTEGRATION_STORAGE_NOT_CONFIGURED', 'Máy chủ chưa cấu hình khóa mã hóa tích hợp.')
+    try {
+      const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(row.nonce, 'base64'))
+      decipher.setAAD(Buffer.from(`${row.tenant_id}:oauth:${row.provider}:${row.state_hash}`))
+      decipher.setAuthTag(Buffer.from(row.auth_tag, 'base64'))
+      const plaintext = Buffer.concat([
+        decipher.update(Buffer.from(row.ciphertext, 'base64')),
+        decipher.final(),
+      ]).toString('utf8')
+      const credentials = JSON.parse(plaintext)
+      if (!isRecord(credentials)) throw new Error('Invalid OAuth credentials')
+      return credentials
+    } catch {
+      fail(500, 'OAUTH_STATE_UNREADABLE', 'Không thể xác minh yêu cầu OAuth đã bắt đầu.')
+    }
+  }
+
+  const saveOAuthState = (actor, provider, credentials) => {
+    const state = randomBytes(32).toString('base64url')
+    const stateHash = createHash('sha256').update(state).digest('hex')
+    const encrypted = encryptWithAad(
+      `${actor.tenantId}:oauth:${provider}:${stateHash}`,
+      credentials,
+    )
+    const createdAt = now()
+    db.prepare('DELETE FROM tiktok_oauth_states WHERE expires_at<=?').run(createdAt.toISOString())
+    insertOAuthState.run(
+      stateHash,
+      actor.tenantId,
+      actor.userId,
+      provider,
+      encrypted.ciphertext,
+      encrypted.nonce,
+      encrypted.authTag,
+      new Date(createdAt.getTime() + 10 * 60 * 1000).toISOString(),
+      createdAt.toISOString(),
+    )
+    return state
+  }
+
+  const consumeOAuthState = (provider, state) => {
+    if (typeof state !== 'string' || !/^[A-Za-z0-9_-]{40,60}$/.test(state))
+      fail(400, 'OAUTH_STATE_INVALID', 'Yêu cầu OAuth không hợp lệ hoặc đã hết hạn.')
+    const stateHash = createHash('sha256').update(state).digest('hex')
+    const row = transaction(db, () => {
+      const found = getOAuthState.get(stateHash, provider)
+      if (found) removeOAuthState.run(stateHash)
+      return found
+    })
+    if (!row || row.expires_at <= now().toISOString())
+      fail(400, 'OAUTH_STATE_INVALID', 'Yêu cầu OAuth không hợp lệ hoặc đã hết hạn.')
+    return { row, credentials: readOAuthCredentials(row) }
+  }
+
+  const readProviderJson = async (response, code) => {
+    if (!response.ok) fail(502, code, 'Nhà cung cấp không chấp nhận yêu cầu OAuth.')
+    try {
+      return await response.json()
+    } catch {
+      fail(502, 'OAUTH_INVALID_RESPONSE', 'Nhà cung cấp trả về dữ liệu OAuth không hợp lệ.')
+    }
+  }
+
+  const storeOAuthCredentials = (tenantId, provider, credentials, accountName) => {
+    const encrypted = encrypt(tenantId, provider, credentials)
+    const timestamp = now().toISOString()
+    upsert.run(
+      tenantId,
+      provider,
+      encrypted.ciphertext,
+      encrypted.nonce,
+      encrypted.authTag,
+      accountName,
+      timestamp,
+      timestamp,
+    )
   }
 
   const status = (actor) => {
@@ -381,6 +569,7 @@ export function createIntegrationSettings(
         telegram: providerStatus('telegram', Boolean(defaults.telegram?.botToken)),
         shopee: providerStatus('shopee'),
         lazada: providerStatus('lazada'),
+        tiktok: providerStatus('tiktok'),
         tiktokshop: providerStatus('tiktokshop'),
       },
     }
@@ -389,6 +578,158 @@ export function createIntegrationSettings(
   return {
     status,
     credentialsFor,
+    beginOAuth(actor, provider, input) {
+      requireAdmin(actor)
+      if (!['tiktok', 'tiktokshop'].includes(provider))
+        fail(404, 'INTEGRATION_NOT_FOUND', 'Nhà cung cấp không được hỗ trợ.')
+      if (!isRecord(input)) fail(400, 'INVALID_FIELDS', 'Thông tin OAuth không hợp lệ.')
+      const redirectUri = redirectUriFor(provider)
+      let credentials
+      let authorizationUrl
+      if (provider === 'tiktok') {
+        if (Object.keys(input).length)
+          fail(400, 'INVALID_FIELDS', 'TikTok Login Kit không nhận thông tin OAuth từ trình duyệt.')
+        credentials = {
+          clientKey: cleanClientKey(defaults.tiktok?.clientKey, 'TikTok Client Key'),
+          clientSecret: cleanSecret(defaults.tiktok?.clientSecret, 'TikTok Client Secret'),
+          redirectUri,
+        }
+        authorizationUrl = new URL('https://www.tiktok.com/v2/auth/authorize/')
+        authorizationUrl.search = new URLSearchParams({
+          client_key: credentials.clientKey,
+          response_type: 'code',
+          scope: 'user.info.basic',
+          redirect_uri: redirectUri,
+          state: '',
+        }).toString()
+      } else {
+        if (Object.keys(input).some((field) => !['appKey', 'appSecret'].includes(field)))
+          fail(400, 'INVALID_FIELDS', 'TikTok Shop OAuth chỉ nhận App Key và App Secret.')
+        credentials = {
+          appKey: cleanId(input.appKey, 'TikTok Shop App Key'),
+          appSecret: cleanSecret(input.appSecret, 'TikTok Shop App Secret'),
+          redirectUri,
+        }
+        authorizationUrl = new URL('https://services.tiktokshop.com/open/authorize')
+        authorizationUrl.search = new URLSearchParams({
+          service_id: credentials.appKey,
+          state: '',
+        }).toString()
+      }
+      const state = saveOAuthState(actor, provider, credentials)
+      authorizationUrl.searchParams.set('state', state)
+      return { authorizationUrl: authorizationUrl.href }
+    },
+    async completeOAuth(provider, params) {
+      if (!['tiktok', 'tiktokshop'].includes(provider))
+        fail(404, 'INTEGRATION_NOT_FOUND', 'Nhà cung cấp không được hỗ trợ.')
+      for (const name of ['state', 'code', 'error'])
+        if (params.getAll(name).length > 1)
+          fail(400, 'OAUTH_CALLBACK_INVALID', 'Phản hồi OAuth có tham số lặp.')
+      const { row, credentials } = consumeOAuthState(provider, params.get('state'))
+      const initiator = db
+        .prepare('SELECT role,active FROM users WHERE id=? AND tenant_id=?')
+        .get(row.user_id, row.tenant_id)
+      if (!initiator || initiator.active !== 1 || !['owner', 'admin'].includes(initiator.role))
+        fail(403, 'FORBIDDEN', 'Người bắt đầu kết nối không còn quyền quản lý tích hợp.')
+      if (params.get('error'))
+        fail(400, 'OAUTH_DENIED', 'Bạn đã hủy hoặc TikTok từ chối yêu cầu kết nối.')
+      const code = params.get('code')
+      if (typeof code !== 'string' || !code.trim() || code.length > 4096 || hasControls(code))
+        fail(400, 'OAUTH_CODE_INVALID', 'TikTok không trả về mã ủy quyền hợp lệ.')
+      const redirectUri = credentials.redirectUri
+      const timeout = { signal: AbortSignal.timeout(10000) }
+      let accountName
+      let savedCredentials
+      if (provider === 'tiktok') {
+        const body = new URLSearchParams({
+          client_key: credentials.clientKey,
+          client_secret: credentials.clientSecret,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri,
+        })
+        let response
+        try {
+          response = await fetchImpl('https://open.tiktokapis.com/v2/oauth/token/', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body,
+            ...timeout,
+          })
+        } catch {
+          fail(502, 'OAUTH_EXCHANGE_FAILED', 'Không thể đổi mã OAuth TikTok. Hãy thử kết nối lại.')
+        }
+        const token = await readProviderJson(response, 'OAUTH_EXCHANGE_FAILED')
+        if (
+          token?.error ||
+          typeof token?.access_token !== 'string' ||
+          typeof token?.refresh_token !== 'string' ||
+          typeof token?.open_id !== 'string' ||
+          !Number.isFinite(token?.expires_in) ||
+          !Number.isFinite(token?.refresh_expires_in)
+        )
+          fail(502, 'OAUTH_INVALID_RESPONSE', 'TikTok trả về thông tin tài khoản không hợp lệ.')
+        const openId = cleanClientKey(token.open_id, 'TikTok open ID')
+        savedCredentials = {
+          ...credentials,
+          accessToken: cleanSecret(token.access_token, 'TikTok access token'),
+          refreshToken: cleanSecret(token.refresh_token, 'TikTok refresh token'),
+          openId,
+          scope: typeof token.scope === 'string' ? token.scope.slice(0, 1000) : '',
+          accessTokenExpiresAt: new Date(
+            now().getTime() + Number(token.expires_in) * 1000,
+          ).toISOString(),
+          refreshTokenExpiresAt: new Date(
+            now().getTime() + Number(token.refresh_expires_in) * 1000,
+          ).toISOString(),
+        }
+        const accountSuffix = openId.replace(/[^A-Za-z0-9]/g, '').slice(-6)
+        accountName = `TikTok account ${accountSuffix}`
+      } else {
+        const tokenUrl = new URL('https://auth.tiktok-shops.com/api/v2/token/get')
+        tokenUrl.search = new URLSearchParams({
+          app_key: credentials.appKey,
+          app_secret: credentials.appSecret,
+          auth_code: code,
+          grant_type: 'authorized_code',
+        }).toString()
+        let response
+        try {
+          response = await fetchImpl(tokenUrl, {
+            headers: { Accept: 'application/json' },
+            ...timeout,
+          })
+        } catch {
+          fail(502, 'OAUTH_EXCHANGE_FAILED', 'Không thể đổi mã OAuth TikTok Shop. Hãy thử lại.')
+        }
+        const token = await readProviderJson(response, 'OAUTH_EXCHANGE_FAILED')
+        if (
+          !token?.data ||
+          !['0', 0].includes(token.code) ||
+          typeof token.data.access_token !== 'string' ||
+          typeof token.data.refresh_token !== 'string'
+        )
+          fail(502, 'OAUTH_INVALID_RESPONSE', 'TikTok Shop trả về thông tin token không hợp lệ.')
+        savedCredentials = {
+          appKey: credentials.appKey,
+          appSecret: credentials.appSecret,
+          accessToken: cleanSecret(token.data.access_token, 'TikTok Shop access token'),
+          refreshToken: cleanSecret(token.data.refresh_token, 'TikTok Shop refresh token'),
+          shopCipher: '',
+          accessTokenExpiresAt: String(token.data.access_token_expire_in ?? ''),
+          refreshTokenExpiresAt: String(token.data.refresh_token_expire_in ?? ''),
+        }
+        const shop = await checkProvider('tiktokshop', savedCredentials)
+        savedCredentials.shopCipher = shop.shopCipher
+        accountName = shop.accountName
+      }
+      storeOAuthCredentials(row.tenant_id, provider, savedCredentials, accountName)
+      return { provider, accountName }
+    },
     async test(actor, provider, input) {
       requireAdmin(actor)
       const name = providerName(provider)

@@ -506,7 +506,6 @@ function InboxPage() {
               <>
                 <ConversationWorkspace
                   key={`${selected.id}:${workspaceEpoch}`}
-                  data={data}
                   conversation={selected}
                   customer={customer}
                   detailsOpen={detailsOpen}
@@ -530,8 +529,6 @@ function InboxPage() {
                       key={customer.id}
                       customer={customer}
                       conversation={selected}
-                      agents={data.agents}
-                      teams={data.teams}
                       onUpdateConversation={updateConversation}
                       onUpdateCustomer={updateCustomer}
                       onClose={() => setDetailsOpen(false)}
