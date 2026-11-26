@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Bộ bình gốm Nordic — hình minh họa Demo</title>
+  <desc id="desc">Ba bình gốm tông kem, cát và đất nung cùng nhành lá trên nền sáng.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#faf7f0"/><stop offset="1" stop-color="#e9e0d2"/></linearGradient>
+    <linearGradient id="cream"><stop stop-color="#bdb09c"/><stop offset=".4" stop-color="#eee6d5"/><stop offset=".75" stop-color="#f8f0df"/><stop offset="1" stop-color="#c8bda8"/></linearGradient>
+    <linearGradient id="sand"><stop stop-color="#ad9472"/><stop offset=".45" stop-color="#d7c1a0"/><stop offset="1" stop-color="#bea383"/></linearGradient>
+    <linearGradient id="clay"><stop stop-color="#a96c50"/><stop offset=".5" stop-color="#d79a78"/><stop offset="1" stop-color="#b87b5c"/></linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="24" fill="url(#bg)"/>
+  <circle cx="481" cy="132" r="104" fill="#f3ede1"/>
+  <path d="M0 374H640V480H0Z" fill="#e3d8c6"/>
+  <ellipse cx="324" cy="391" rx="216" ry="25" fill="#8d7451" opacity=".13"/>
+  <path d="M360 231C383 171 423 126 448 70M408 148C390 122 390 107 390 94M425 115C451 111 468 101 479 82" fill="none" stroke="#797d56" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#929a70"><ellipse cx="393" cy="110" rx="11" ry="27" transform="rotate(-34 393 110)"/><ellipse cx="427" cy="121" rx="11" ry="30" transform="rotate(45 427 121)"/><ellipse cx="449" cy="76" rx="10" ry="28" transform="rotate(27 449 76)"/><ellipse cx="463" cy="95" rx="10" ry="25" transform="rotate(60 463 95)"/></g>
+  <path d="M298 213H385L382 248C383 271 426 282 429 332C432 372 403 397 343 397C284 397 257 373 260 332C264 282 304 268 302 248Z" fill="url(#sand)"/>
+  <ellipse cx="341.5" cy="213" rx="43.5" ry="10" fill="#d8c6aa"/><ellipse cx="341.5" cy="214" rx="30" ry="5" fill="#7e674e"/>
+  <path d="M176 142H238L236 214C235 241 263 269 263 315V361C263 384 237 398 206 398C174 398 149 384 149 361V315C149 269 177 241 177 214Z" fill="url(#cream)"/>
+  <ellipse cx="207" cy="142" rx="31" ry="8" fill="#ede4d0"/><ellipse cx="207" cy="143" rx="21" ry="4" fill="#9f927d"/>
+  <path d="M454 286H494L493 308C494 319 525 326 530 353C534 382 516 399 475 399C434 399 416 382 420 353C425 326 456 319 455 308Z" fill="url(#clay)"/>
+  <ellipse cx="474" cy="286" rx="20" ry="6" fill="#d9a284"/><ellipse cx="474" cy="287" rx="13" ry="3" fill="#89543c"/>
+  <g fill="none" stroke="#fff8e8" opacity=".25"><path d="M168 324V359M182 255C177 277 167 288 167 310" stroke-width="5" stroke-linecap="round"/><path d="M282 339C279 363 288 374 299 380" stroke-width="4" stroke-linecap="round"/></g>
+</svg>

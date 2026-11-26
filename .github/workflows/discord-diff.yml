@@ -1,0 +1,53 @@
+name: Super Detailed Discord Push
+
+on:
+  push:
+    branches: ['**']
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code (lấy lịch sử git để tính diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Tạo thống kê Git Diff & Gửi sang Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          # 1. Lấy thông tin commit & diff stat
+          AUTHOR="${{ github.actor }}"
+          BRANCH="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_URL="${{ github.event.head_commit.url }}"
+
+          # Lấy danh sách file và số dòng thay đổi (+ / -)
+          DIFF_STAT=$(git diff --stat HEAD~1 HEAD 2>/dev/null || echo "First commit or no diff available")
+
+          # 2. Tạo payload gửi Discord
+          JSON_PAYLOAD=$(jq -n \
+            --arg title "🚀 [$REPO] Cập nhật code mới trên nhánh \`$BRANCH\`" \
+            --arg author "$AUTHOR" \
+            --arg msg "$COMMIT_MSG" \
+            --arg url "$COMMIT_URL" \
+            --arg diff "$DIFF_STAT" \
+            '{
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: 5814783,
+                fields: [
+                  { name: "👤 Người thực hiện", value: $author, inline: true },
+                  { name: "📝 Nội dung Commit", value: $msg, inline: false },
+                  { name: "📊 Chi tiết file & số dòng thay đổi (+ / -)", value: ("```diff\n" + $diff + "\n```"), inline: false }
+                ],
+                footer: { text: "GitHub Sentinel • Realtime Code Tracker" },
+                timestamp: (now | todate)
+              }]
+            }')
+
+          # 3. Gửi Webhook
+          curl -H "Content-Type: application/json" -X POST -d "$JSON_PAYLOAD" "$DISCORD_WEBHOOK"

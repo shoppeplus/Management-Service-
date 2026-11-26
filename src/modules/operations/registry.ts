@@ -1,0 +1,27 @@
+export const OPERATIONS_MODULES = [
+  { name: 'Admin', path: '/admin' },
+  { name: 'Dashboard', path: '/dashboard' },
+  { name: 'CRM', path: '/customers' },
+  { name: 'Customer Care', path: '/care' },
+  { name: 'Orders', path: '/orders' },
+  { name: 'Logistics', path: '/logistics' },
+  { name: 'Inventory', path: '/inventory' },
+  { name: 'Products', path: '/products' },
+  { name: 'Market Intelligence', path: '/market-intelligence' },
+  { name: 'Reports', path: '/reports' },
+  { name: 'Accounting', path: '/accounting' },
+] as const
+export const MODULE_ROUTES: Record<string, string> = {
+  Admin: '/admin',
+  Dashboard: '/dashboard',
+  Inbox: '/inbox',
+  CRM: '/customers',
+  'Customer Care': '/care',
+  Orders: '/orders',
+  Logistics: '/logistics',
+  Inventory: '/inventory',
+  Products: '/products',
+  'Market Intelligence': '/market-intelligence',
+  Reports: '/reports',
+  Accounting: '/accounting',
+}

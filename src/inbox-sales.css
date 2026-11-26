@@ -1,0 +1,370 @@
+.channel-integrations {
+  min-width: 0;
+  max-width: 540px;
+  overflow-x: auto;
+  flex-shrink: 1;
+  justify-content: flex-start;
+  padding: 5px 3px;
+  gap: 12px;
+}
+.integration-button {
+  flex-shrink: 0;
+}
+.manage-connections {
+  color: #7057bb;
+  border: 1px solid #dbd1ef;
+  border-radius: 8px;
+}
+.connection-intro {
+  margin: 0 0 15px;
+  color: #655b71;
+}
+.connection-mode {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 9px;
+  background: #f5f1fc;
+  color: #64517f;
+  line-height: 1.6;
+}
+.connection-mode > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.connection-group {
+  margin-top: 25px;
+}
+.connection-group > h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #5a4a70;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.connection-platform {
+  border: 1px solid #e9e2f1;
+  border-radius: 10px;
+  margin-bottom: 9px;
+  padding: 13px;
+}
+.connection-platform-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b3e5d;
+  font-size: 13px;
+}
+.connection-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.connection-account > div:first-child {
+  min-width: 0;
+}
+.connection-account > div > strong {
+  display: block;
+  font-size: 12px;
+  color: #655970;
+  overflow-wrap: anywhere;
+}
+.connection-account small {
+  display: block;
+  color: #80748c;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.connection-state {
+  display: inline-flex;
+  margin: 3px 0 4px;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: #f2eef8;
+  color: #7c639c;
+  font-size: 10px;
+}
+.state-connected {
+  background: #edf7f0;
+  color: #367b54;
+}
+.state-error,
+.state-expired {
+  background: #fff2e9;
+  color: #b56236;
+}
+.connection-actions {
+  flex-shrink: 0;
+}
+.connection-actions .button {
+  font-size: 11px;
+}
+.connection-error,
+.sales-warning {
+  color: #9d542c;
+  background: #fff5e9;
+  border: 1px solid #f3dfc4;
+  padding: 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.connection-error {
+  margin-top: 16px;
+}
+.connection-error p,
+.sales-warning p {
+  margin: 0 0 8px;
+}
+.connection-empty {
+  margin: 8px 0;
+  font-size: 11px;
+}
+.composer-tools .composer-ai-action {
+  color: #8060ae;
+}
+.composer-actions {
+  gap: 8px;
+}
+.composer-tools {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.composer-tools .icon-button {
+  flex-shrink: 0;
+}
+.conversation-sales-dialog,
+.ai-dialog-body {
+  color: #665574;
+  font-size: 13px;
+}
+.sales-heading,
+.sales-customer-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sales-heading {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eee6f5;
+}
+.sales-customer-context {
+  min-width: 0;
+}
+.sales-customer-context > svg {
+  flex-shrink: 0;
+  color: #8063b0;
+}
+.sales-customer-context p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #83718f;
+}
+.sales-analysis-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.sales-analysis-controls .button,
+.sales-heading .button,
+.sales-body .button {
+  font-size: 12px;
+  min-height: 34px;
+}
+.sales-mode,
+.ai-dialog-mode {
+  font-size: 11px;
+  color: #826b99;
+}
+.sales-muted {
+  color: #83718f;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 10px 0;
+}
+.sales-muted > svg {
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.purchase-intent {
+  display: block;
+  padding: 8px 0;
+  color: #826d96;
+}
+.intent-purchase {
+  color: #34764f;
+}
+.purchase-product {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #eee6f5;
+  padding: 12px 0;
+}
+.purchase-product > svg {
+  flex-shrink: 0;
+  color: #967caf;
+  margin-top: 4px;
+}
+.purchase-product > div {
+  min-width: 0;
+}
+.purchase-product strong {
+  display: block;
+  color: #62506f;
+}
+.purchase-product small,
+.purchase-product span {
+  display: block;
+  font-size: 12px;
+  color: #83718f;
+  margin-top: 4px;
+}
+.purchase-product blockquote {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid #d7c4e8;
+  color: #766282;
+  background: #f8f5fb;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.sales-linked-orders {
+  margin-top: 20px;
+  border-top: 1px solid #e9e1f1;
+  padding-top: 16px;
+}
+.sales-linked-orders > strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sales-linked-orders > strong > span {
+  color: #806494;
+  background: #efe7f9;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+.sales-linked-orders > a {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 10px;
+  background: #f6f1fa;
+  border-radius: 6px;
+  color: #745583;
+  font-size: 12px;
+}
+.sales-created {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f9f3;
+  color: #437650;
+  padding: 10px 12px;
+  font-size: 12px;
+  border-radius: 7px;
+  margin-bottom: 14px;
+}
+.sales-created a {
+  text-decoration: underline;
+}
+.ai-dialog-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f6f1fc;
+  border-radius: 7px;
+  margin-bottom: 18px;
+}
+.ai-dialog-body .ai-insight > strong,
+.ai-dialog-body .ai-next-step strong,
+.ai-reply-preview > strong {
+  font-size: 12px;
+  color: #665075;
+}
+.ai-dialog-body .ai-sentiment {
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #826b99;
+  margin: 15px 0;
+}
+.ai-dialog-body .ai-next-step {
+  font-size: 13px;
+}
+.ai-reply-preview {
+  padding: 14px;
+  border: 1px solid #e9e1f2;
+  border-radius: 8px;
+  background: #fcfaff;
+  margin-top: 18px;
+}
+.ai-reply-preview p {
+  margin: 5px 0 0;
+}
+.ai-dialog-body .ai-use-suggestion {
+  font-size: 12px;
+  padding: 9px 12px;
+  margin-top: 14px;
+}
+@media (max-width: 1350px) {
+  .channel-integrations {
+    max-width: 410px;
+    gap: 8px;
+  }
+}
+@media (max-width: 640px) {
+  .channel-integrations {
+    max-width: 100%;
+    justify-content: flex-start;
+    gap: 13px;
+  }
+  .connection-account {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .connection-actions {
+    align-self: flex-end;
+  }
+  .composer-tools {
+    gap: 1px;
+  }
+  .composer-tools .icon-button {
+    width: 26px;
+    height: 30px;
+  }
+  .composer-actions {
+    gap: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  .composer-actions .tool-separator {
+    margin: 0 2px;
+  }
+  .composer-actions .send-button {
+    padding-left: 9px;
+    padding-right: 9px;
+    gap: 6px;
+  }
+}
+@media (max-width: 360px) {
+  .composer-tools {
+    gap: 0;
+  }
+  .composer-tools .icon-button {
+    width: 24px;
+  }
+}

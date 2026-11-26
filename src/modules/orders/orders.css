@@ -1,0 +1,90 @@
+.orders-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orders-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.orders-notice svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.orders-notice-error {
+  color: #a93c4b;
+  border-color: #f0cbd0;
+  background: #fff5f6;
+}
+
+.orders-notice-success {
+  color: #327151;
+  border-color: #cce5d6;
+  background: #f4fbf6;
+}
+
+.orders-loading {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  color: #858b9d;
+  font-size: 12px;
+}
+
+.orders-product-cell > div + div {
+  margin-top: 7px;
+}
+
+.orders-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 115px;
+}
+
+.orders-row-actions > button {
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid #e3e5ee;
+  border-radius: 6px;
+  color: #575d72;
+  background: #fff;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.orders-row-actions > button:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: #cfc7ed;
+}
+
+.orders-row-actions > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.orders-issue-reference {
+  flex-basis: 100%;
+}
+
+@media (max-width: 760px) {
+  .orders-header-actions {
+    width: 100%;
+  }
+
+  .orders-header-actions > button {
+    flex: 1;
+    justify-content: center;
+  }
+}

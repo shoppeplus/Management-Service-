@@ -1,0 +1,400 @@
+.integration-settings {
+  display: grid;
+  gap: 14px;
+  color: #4a4b60;
+  font-size: 11px;
+}
+.integration-settings-intro,
+.integration-settings-section > header,
+.integration-provider-row,
+.integration-channel-row,
+.integration-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.integration-settings-intro {
+  align-items: center;
+}
+.integration-settings-eyebrow {
+  color: #8372ae;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+.integration-settings-intro h3 {
+  margin: 4px 0;
+  color: #3e4056;
+  font-size: 16px;
+}
+.integration-settings-intro p,
+.integration-settings-section > header p {
+  margin: 0;
+  color: #767b8d;
+  line-height: 1.6;
+}
+.integration-refresh,
+.integration-actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.integration-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.integration-overview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #e8e7ef;
+  border-radius: 8px;
+  background: #fafafe;
+}
+.integration-overview span {
+  color: #82869a;
+  font-size: 9px;
+}
+.integration-overview strong {
+  overflow-wrap: anywhere;
+  color: #47495e;
+  font-size: 11px;
+}
+.integration-settings-section {
+  padding: 13px;
+  border: 1px solid #e8e7ef;
+  border-radius: 9px;
+  background: #fff;
+}
+.integration-settings-section > header {
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 11px;
+}
+.integration-section-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px;
+}
+.integration-section-icon.ai {
+  background: #f0edfa;
+  color: #725fa9;
+}
+.integration-section-icon.marketplace {
+  background: #fff2e9;
+  color: #bd6c39;
+}
+.integration-section-icon.messaging {
+  background: #eaf5fb;
+  color: #3c7c9a;
+}
+.integration-section-icon.other {
+  background: #f1f2f5;
+  color: #72798a;
+}
+.integration-settings-section > header h4 {
+  margin: 0 0 3px;
+  color: #46495d;
+  font-size: 12px;
+}
+.integration-settings-section > header p {
+  font-size: 10px;
+}
+.integration-provider-grid,
+.integration-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.integration-credential-grid {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.integration-marketplace-grid {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.integration-marketplace-heading {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeedf4;
+}
+.integration-credential-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e8e5f0;
+  border-radius: 10px;
+  background: linear-gradient(160deg, #fff 50%, #fcfbff);
+  box-shadow: 0 3px 12px rgb(57 44 103 / 5%);
+}
+.integration-credential-card > div:first-child:not(.integration-marketplace-heading) {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeedf4;
+}
+.integration-credential-card > div:first-child strong,
+.integration-marketplace-heading strong {
+  color: #44445b;
+  font-size: 12px;
+  font-weight: 700;
+}
+.integration-credential-card > div:first-child small,
+.integration-marketplace-heading small {
+  color: #777b8f;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.integration-credential-card label {
+  display: grid;
+  gap: 6px;
+  color: #55576d;
+  font-size: 10px;
+  font-weight: 650;
+}
+.integration-credential-card input,
+.integration-credential-card select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid #dcd9e7;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #3f4056;
+  font: inherit;
+  font-size: 11px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+.integration-credential-card input::placeholder {
+  color: #9a98a8;
+}
+.integration-credential-card input:focus-visible,
+.integration-credential-card select:focus-visible {
+  border-color: #7865c5;
+  box-shadow: 0 0 0 3px rgb(120 101 197 / 14%);
+}
+.integration-credential-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.integration-credential-actions .button {
+  min-height: 36px;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-size: 10px;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+.integration-credential-actions .button:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  box-shadow: none;
+}
+.integration-credential-actions .button-primary:disabled {
+  border-color: #e6e1f1;
+  background: #f0edf7;
+  color: #82779f;
+}
+.integration-credential-actions .button-secondary:disabled {
+  border-color: #e9e7ef;
+  background: #faf9fc;
+  color: #9996a5;
+}
+.integration-telegram-card {
+  margin-bottom: 10px;
+}
+.integration-provider-row,
+.integration-channel-row {
+  min-width: 0;
+  align-items: center;
+  padding: 8px 9px;
+  border: 1px solid #eeedf3;
+  border-radius: 7px;
+  background: #fdfdff;
+}
+.integration-provider-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.integration-provider-row strong,
+.integration-channel-name {
+  color: #4b4d60;
+  font-size: 10px;
+  font-weight: 700;
+}
+.integration-provider-row small,
+.integration-channel-row small {
+  overflow-wrap: anywhere;
+  color: #85899a;
+  font-size: 9px;
+}
+.integration-channel-row {
+  flex-wrap: wrap;
+}
+.integration-channel-row small {
+  width: 100%;
+}
+.integration-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  color: #737789;
+  font-size: 9px;
+  font-weight: 650;
+}
+.integration-status.is-ready {
+  color: #2f7a52;
+}
+.integration-status.is-missing {
+  color: #a56a24;
+}
+.integration-status.is-planned {
+  color: #8174a0;
+}
+.integration-status.is-demo {
+  color: #7466a5;
+}
+.integration-inline-error {
+  padding: 8px 9px;
+  margin: 0 0 9px;
+  border-radius: 6px;
+  background: #fff2ef;
+  color: #a34a3c;
+  line-height: 1.5;
+}
+.integration-inline-success {
+  padding: 8px 9px;
+  margin: 0;
+  border-radius: 6px;
+  background: #edf8f1;
+  color: #31734e;
+  line-height: 1.5;
+}
+.integration-security-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px;
+  margin: 9px 0;
+  border-radius: 7px;
+  background: #f5f4fa;
+  color: #716986;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.integration-security-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #7562aa;
+}
+.integration-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.integration-actions > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.integration-actions code {
+  padding: 3px 5px;
+  border: 1px solid #e8e5f0;
+  border-radius: 5px;
+  background: #faf9fc;
+  color: #6d5f86;
+  font-size: 9px;
+}
+.integration-actions > p {
+  flex: 1 1 260px;
+  margin: 0;
+  color: #74798c;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.integration-capability-note {
+  margin: 9px 0 0;
+  color: #7a7f90;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.integration-settings-section.future {
+  border-style: dashed;
+  background: #fbfbfd;
+}
+.integration-future-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.integration-future-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border: 1px solid #e9e9ef;
+  border-radius: 999px;
+  color: #74798b;
+  font-size: 9px;
+}
+.integration-footnote {
+  margin: 0;
+  color: #85899a;
+  font-size: 9px;
+  line-height: 1.6;
+}
+@media (max-width: 560px) {
+  .integration-settings-intro {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .integration-overview {
+    grid-template-columns: 1fr;
+  }
+  .integration-provider-grid,
+  .integration-channel-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .integration-credential-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .integration-marketplace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

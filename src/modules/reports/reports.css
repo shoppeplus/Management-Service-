@@ -1,0 +1,455 @@
+.reports-page {
+  max-width: 1900px;
+}
+.reports-filter-bar {
+  gap: 14px;
+  min-height: 39px;
+}
+.reports-date-range {
+  color: #716b80;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.reports-content .dashboard-metrics {
+  margin-bottom: 17px;
+}
+.reports-section-switch {
+  display: flex;
+  gap: 5px;
+  width: fit-content;
+  margin: 0 0 15px;
+  padding: 4px;
+  border: 1px solid #e8e4ef;
+  border-radius: 10px;
+  background: #f7f6f9;
+}
+.reports-section-switch button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #716b80;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.reports-section-switch button[aria-selected='true'] {
+  background: #fff;
+  color: #5e3faa;
+  box-shadow: 0 1px 4px rgb(34 24 55 / 10%);
+}
+.accounting-ledger {
+  margin-top: 12px;
+  padding: 22px;
+  border: 1px solid #e8e4ef;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(34 24 55 / 4%);
+}
+.accounting-heading,
+.accounting-filters,
+.accounting-journal-heading,
+.accounting-entry-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.accounting-heading {
+  position: relative;
+  align-items: flex-start;
+}
+.accounting-heading h1 {
+  margin: 6px 0 5px;
+  color: #241d33;
+  font-size: 19px;
+}
+.accounting-heading p,
+.accounting-disclaimer {
+  max-width: 760px;
+  margin: 0;
+  color: #746d7e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.accounting-eyebrow {
+  color: #7553c7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.accounting-actions-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.accounting-actions-menu > summary,
+.accounting-entry-menu > summary {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #e2ddeb;
+  border-radius: 9px;
+  background: #fff;
+  color: #5e526f;
+  cursor: pointer;
+  list-style: none;
+}
+.accounting-actions-menu > summary::-webkit-details-marker,
+.accounting-entry-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.accounting-actions-popover,
+.accounting-entry-menu > div {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 154px;
+  padding: 5px;
+  border: 1px solid #e8e4ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(34 24 55 / 14%);
+}
+.accounting-actions-popover button,
+.accounting-entry-menu > div button {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #453b59;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.accounting-actions-popover button:hover,
+.accounting-entry-menu > div button:hover {
+  background: #f7f5fa;
+}
+.accounting-actions-popover button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.accounting-secondary-button,
+.accounting-entry-footer button,
+.accounting-reversal-form button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid #e2ddeb;
+  border-radius: 9px;
+  background: #fff;
+  color: #453b59;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.accounting-secondary-button:disabled,
+.accounting-entry-footer button:disabled,
+.accounting-reversal-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.accounting-filters {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin: 18px 0 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8f7fb;
+}
+.accounting-filters label,
+.accounting-entry-fields label,
+.accounting-entry-line label,
+.accounting-reversal-form label {
+  display: grid;
+  gap: 5px;
+  color: #6f687a;
+  font-size: 11px;
+  font-weight: 650;
+}
+.accounting-filters input,
+.accounting-entry-panel input,
+.accounting-entry-panel select,
+.accounting-reversal-form input {
+  min-height: 34px;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border: 1px solid #ded9e8;
+  border-radius: 7px;
+  background: #fff;
+  color: #2d263c;
+  font: inherit;
+  font-size: 12px;
+}
+.accounting-filters > span {
+  margin-left: auto;
+  color: #746d7e;
+  font-size: 11px;
+}
+.accounting-view-select {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: #746d7e;
+  font-size: 11px;
+  font-weight: 650;
+}
+.accounting-view-select select {
+  min-height: 34px;
+  padding: 5px 28px 5px 9px;
+  border: 1px solid #e2ddeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #453b59;
+  font: inherit;
+  font-size: 11px;
+}
+.accounting-table-wrap {
+  overflow: auto;
+}
+.accounting-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.accounting-table th,
+.accounting-table td {
+  padding: 10px 9px;
+  border-bottom: 1px solid #f0edf4;
+  text-align: right;
+  white-space: nowrap;
+}
+.accounting-table th:first-child,
+.accounting-table td:first-child {
+  text-align: left;
+}
+.accounting-table thead th {
+  color: #726b7d;
+  font-size: 10px;
+  font-weight: 750;
+}
+.accounting-table tbody td:first-child strong,
+.accounting-table tbody td:first-child span {
+  display: block;
+}
+.accounting-table tbody td:first-child strong {
+  color: #43365f;
+}
+.accounting-table tbody td:first-child span {
+  margin-top: 3px;
+  color: #817a8b;
+}
+.accounting-table tfoot th {
+  border-top: 1px solid #e5e0eb;
+  color: #44375c;
+}
+.accounting-journal-list {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+}
+.accounting-load-more {
+  justify-self: center;
+  margin: 4px auto;
+}
+.accounting-journal {
+  overflow: hidden;
+  border: 1px solid #ece8f2;
+  border-radius: 10px;
+}
+.accounting-journal-heading {
+  position: relative;
+  padding: 12px 14px;
+  background: #faf9fc;
+}
+.accounting-journal-heading strong,
+.accounting-journal-heading span {
+  display: block;
+}
+.accounting-journal-heading strong {
+  color: #44365f;
+  font-size: 12px;
+}
+.accounting-journal-heading span {
+  margin-top: 4px;
+  color: #746d7e;
+  font-size: 11px;
+}
+.accounting-entry-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.accounting-line-table {
+  min-width: 540px;
+}
+.accounting-reversal-form,
+.accounting-entry-fields {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) minmax(220px, 1fr);
+  gap: 12px;
+}
+.accounting-reversal-form {
+  align-items: end;
+  padding: 12px;
+  border-top: 1px solid #ece8f2;
+}
+.accounting-reversal-form button,
+.accounting-entry-footer button[type='submit'] {
+  border-color: #6848b2;
+  background: #6848b2;
+  color: #fff;
+}
+.accounting-account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  padding-top: 14px;
+}
+.accounting-account-grid article {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid #ece8f2;
+  border-radius: 10px;
+}
+.accounting-account-grid strong {
+  color: #5b4291;
+  font-size: 12px;
+}
+.accounting-account-grid span {
+  color: #393244;
+  font-size: 12px;
+  font-weight: 650;
+}
+.accounting-account-grid small {
+  color: #817a8b;
+  font-size: 10px;
+}
+.accounting-empty {
+  padding: 20px 10px;
+  color: #817a8b;
+  text-align: center;
+  font-size: 12px;
+}
+.accounting-alert,
+.accounting-notice {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.accounting-alert {
+  background: #fff1ef;
+  color: #a53d33;
+}
+.accounting-notice {
+  background: #eff9f3;
+  color: #26734a;
+}
+.accounting-entry-panel {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #ece8f2;
+}
+.accounting-entry-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #6548a2;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.accounting-entry-panel summary::-webkit-details-marker {
+  display: none;
+}
+.accounting-entry-panel form {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+.accounting-entry-lines {
+  display: grid;
+  gap: 10px;
+}
+.accounting-entry-line {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.3fr) repeat(2, minmax(110px, 0.7fr)) minmax(170px, 1fr) auto;
+  align-items: end;
+  gap: 9px;
+}
+.accounting-remove-line {
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: #a24949;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.accounting-entry-footer {
+  justify-content: flex-end;
+}
+.accounting-disclaimer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0edf4;
+  font-size: 10px;
+}
+@media (max-width: 700px) {
+  .reports-filter-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .reports-filter-bar .dashboard-updated {
+    margin-left: 0;
+  }
+  .accounting-ledger {
+    padding: 14px;
+  }
+  .accounting-heading {
+    flex-direction: column;
+  }
+  .accounting-actions-menu {
+    align-self: flex-end;
+  }
+  .accounting-filters > span {
+    width: 100%;
+    margin-left: 0;
+  }
+  .accounting-entry-line {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px;
+    border: 1px solid #ece8f2;
+    border-radius: 9px;
+  }
+  .accounting-entry-line label:first-child,
+  .accounting-entry-line label:last-of-type {
+    grid-column: 1 / -1;
+  }
+  .accounting-remove-line {
+    justify-self: start;
+  }
+  .accounting-reversal-form,
+  .accounting-entry-fields {
+    grid-template-columns: 1fr;
+  }
+}

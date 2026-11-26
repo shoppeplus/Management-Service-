@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Khay gỗ trang trí — hình minh họa Demo</title>
+  <desc id="desc">Khay gỗ chữ nhật bo góc, vân gỗ tự nhiên với tay cầm hai bên.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#f8f5ed"/><stop offset="1" stop-color="#e3dfd1"/></linearGradient>
+    <linearGradient id="wood" x2=".8" y2="1"><stop stop-color="#d1aa76"/><stop offset=".45" stop-color="#b88b56"/><stop offset="1" stop-color="#d5af79"/></linearGradient>
+    <linearGradient id="edge" x2="0" y2="1"><stop stop-color="#aa7c49"/><stop offset="1" stop-color="#78512f"/></linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="24" fill="url(#bg)"/>
+  <path d="M0 370L640 341V480H0Z" fill="#d7d0bf"/>
+  <path d="M86 0H137L268 480H190Z" fill="#fffdf5" opacity=".45"/>
+  <ellipse cx="321" cy="369" rx="251" ry="35" fill="#725d3e" opacity=".15"/>
+  <path d="M93 206Q92 192 113 190L463 161Q482 160 494 177L566 305Q577 326 556 341L204 392Q181 395 164 379L83 242Q73 221 93 206Z" fill="url(#edge)"/>
+  <path d="M94 190Q91 178 113 176L463 147Q481 146 493 163L565 291Q576 311 555 327L204 378Q181 381 164 365L83 228Q73 206 94 190Z" fill="url(#wood)"/>
+  <path d="M124 207L455 176Q461 176 466 184L531 293Q535 299 526 301L204 348Q198 349 194 342L117 220Q111 210 124 207Z" fill="#9a713f"/>
+  <path d="M133 217L451 190L514 292L204 335Z" fill="#cfaa74"/>
+  <g fill="none" stroke="#8e6236" stroke-width="2" opacity=".28"><path d="M148 230C208 209 279 244 341 214C383 194 419 210 457 202"/><path d="M162 253C232 224 286 261 354 232C399 213 435 230 471 224"/><path d="M176 277C248 249 309 284 375 253C414 236 452 248 483 246"/><path d="M188 300C267 276 328 302 392 275C439 254 464 268 499 270"/><path d="M205 323C269 302 354 326 410 299C454 278 478 290 508 289"/></g>
+  <ellipse cx="327" cy="265" rx="38" ry="12" transform="rotate(-7 327 265)" fill="none" stroke="#a57944" stroke-width="2" opacity=".5"/>
+  <ellipse cx="327" cy="265" rx="19" ry="6" transform="rotate(-7 327 265)" fill="none" stroke="#a57944" stroke-width="2" opacity=".45"/>
+  <path d="M98 211L138 272" stroke="#795431" stroke-width="12" stroke-linecap="round"/>
+  <path d="M99 208L139 269" stroke="#f1cc97" stroke-width="3" stroke-linecap="round"/>
+  <path d="M493 198L526 257" stroke="#795431" stroke-width="12" stroke-linecap="round"/>
+  <path d="M494 195L527 254" stroke="#f1cc97" stroke-width="3" stroke-linecap="round"/>
+  <path d="M170 358L199 370L547 320" stroke="#edc78f" stroke-width="4" fill="none" opacity=".65" stroke-linecap="round"/>
+  <path d="M477 85L510 114M501 81L501 121M524 93L491 112" stroke="#a5ab86" stroke-width="9" stroke-linecap="round"/>
+</svg>

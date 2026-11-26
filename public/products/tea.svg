@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Bộ trà Mộc — hình minh họa Demo</title>
+  <desc id="desc">Ấm trà gốm màu đất cùng hai chén trà trên khay gỗ.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#f5f3e9"/><stop offset="1" stop-color="#dfe4d6"/></linearGradient>
+    <linearGradient id="pot"><stop stop-color="#8e7054"/><stop offset=".42" stop-color="#c0a17b"/><stop offset=".7" stop-color="#cbb28e"/><stop offset="1" stop-color="#9c7e5d"/></linearGradient>
+    <linearGradient id="cup"><stop stop-color="#a7906b"/><stop offset=".5" stop-color="#d9c6a4"/><stop offset="1" stop-color="#bcaa85"/></linearGradient>
+    <linearGradient id="wood"><stop stop-color="#9d7752"/><stop offset="1" stop-color="#c5a577"/></linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="24" fill="url(#bg)"/>
+  <circle cx="433" cy="126" r="112" fill="#f1f0e4"/>
+  <path d="M0 371L640 332V480H0Z" fill="#d1d4c3"/>
+  <ellipse cx="321" cy="387" rx="248" ry="30" fill="#6c7054" opacity=".16"/>
+  <path d="M91 336L491 311L558 361L519 394L128 408L74 371Z" fill="#886748"/>
+  <path d="M91 332L491 307L558 357L519 384L128 398L74 367Z" fill="url(#wood)"/>
+  <path d="M109 347L478 324L527 355L508 369L137 383L102 364Z" fill="#b28e62" stroke="#d9bb8d" stroke-width="3"/>
+  <path d="M145 359L464 339M169 372L486 352" stroke="#8e6d4a" opacity=".25" stroke-width="2"/>
+  <path d="M353 193C433 147 473 204 426 250L395 267" fill="none" stroke="#987a59" stroke-width="22"/>
+  <path d="M360 193C428 161 453 204 417 239" fill="none" stroke="#ccb38b" stroke-width="5"/>
+  <path d="M239 231C217 230 199 219 172 192L151 197C161 232 184 268 221 284Z" fill="url(#pot)"/>
+  <path d="M235 209C245 189 363 189 377 209C401 236 407 294 376 321C344 348 268 348 237 321C208 296 211 239 235 209Z" fill="url(#pot)"/>
+  <ellipse cx="306" cy="211" rx="72" ry="18" fill="#b69972"/>
+  <path d="M247 209C254 182 357 182 365 209Z" fill="#d1b993" stroke="#967756" stroke-width="3"/>
+  <ellipse cx="307" cy="184" rx="13" ry="9" fill="#997956"/>
+  <path d="M241 247C231 276 241 301 258 310" stroke="#e4cfac" stroke-width="6" opacity=".35" fill="none" stroke-linecap="round"/>
+  <ellipse cx="191" cy="362" rx="61" ry="13" fill="#8d7655"/>
+  <path d="M138 305H245L232 348C226 366 157 366 151 348Z" fill="url(#cup)"/>
+  <ellipse cx="191.5" cy="306" rx="53.5" ry="15" fill="#decbaa"/><ellipse cx="191.5" cy="307" rx="44" ry="10" fill="#78603f"/>
+  <ellipse cx="438" cy="347" rx="57" ry="12" fill="#8d7655"/>
+  <path d="M388 294H488L477 335C471 352 405 352 399 335Z" fill="url(#cup)"/>
+  <ellipse cx="438" cy="295" rx="50" ry="14" fill="#dfccaa"/><ellipse cx="438" cy="296" rx="41" ry="9" fill="#78603f"/>
+  <path d="M286 146C272 122 306 112 292 91M328 143C313 124 342 111 331 96" fill="none" stroke="#fffdf3" stroke-width="6" opacity=".8" stroke-linecap="round"/>
+</svg>

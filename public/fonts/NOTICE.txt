@@ -1,0 +1,8 @@
+Noto Sans Regular and Bold
+Copyright 2012 Google Inc. All Rights Reserved.
+
+These unmodified TrueType files are licensed under the Apache License,
+Version 2.0, as stated in their embedded name/license records.
+See LICENSE.txt for the complete license.
+
+Noto font project: https://github.com/notofonts/noto-fonts

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Cốc gốm màu kem — hình minh họa Demo</title>
+  <desc id="desc">Cốc gốm màu kem có quai tròn trên đĩa lót, cạnh một chiếc thìa gỗ.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#f8f6ee"/><stop offset="1" stop-color="#e8e3d7"/></linearGradient>
+    <linearGradient id="body"><stop stop-color="#b5a98f"/><stop offset=".28" stop-color="#e6deca"/><stop offset=".65" stop-color="#f6f0df"/><stop offset="1" stop-color="#d1c5aa"/></linearGradient>
+    <linearGradient id="handle"><stop stop-color="#e8dfcb"/><stop offset="1" stop-color="#baac90"/></linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="24" fill="url(#bg)"/>
+  <path d="M0 371L640 303V480H0Z" fill="#e1d8c7"/>
+  <path d="M63 77C117 50 154 72 184 106" stroke="#e8e0d0" stroke-width="38" fill="none" stroke-linecap="round"/>
+  <ellipse cx="322" cy="373" rx="192" ry="28" fill="#8f8064" opacity=".14"/>
+  <ellipse cx="308" cy="355" rx="171" ry="34" fill="#c9bda5"/>
+  <ellipse cx="308" cy="349" rx="165" ry="31" fill="#eee6d4"/>
+  <ellipse cx="308" cy="349" rx="111" ry="17" fill="none" stroke="#c6b99f" stroke-width="3"/>
+  <path d="M405 180C502 160 511 297 412 298" fill="none" stroke="url(#handle)" stroke-width="32"/>
+  <path d="M412 196C469 186 475 274 414 280" fill="none" stroke="#f6efde" stroke-width="5" opacity=".6"/>
+  <path d="M192 173H425L413 300C410 337 370 354 308 354C246 354 205 337 202 300Z" fill="url(#body)"/>
+  <ellipse cx="308.5" cy="174" rx="116.5" ry="32" fill="#f2ead7"/>
+  <ellipse cx="308.5" cy="176" rx="99" ry="23" fill="#b0a084"/>
+  <ellipse cx="308.5" cy="183" rx="94" ry="16" fill="#6e4b33"/>
+  <path d="M213 209L220 291C223 312 236 320 252 326" fill="none" stroke="#fff9eb" stroke-width="8" stroke-linecap="round" opacity=".45"/>
+  <g fill="#a99b80" opacity=".4"><circle cx="267" cy="239" r="1.5"/><circle cx="335" cy="288" r="2"/><circle cx="380" cy="225" r="1.5"/><circle cx="285" cy="316" r="1.5"/><circle cx="357" cy="251" r="1"/><circle cx="252" cy="273" r="1"/></g>
+  <path d="M416 375L531 336" stroke="#866447" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="535" cy="335" rx="23" ry="12" transform="rotate(-19 535 335)" fill="#ad8862"/>
+  <path d="M283 119C261 94 302 88 281 65M325 120C305 97 341 88 326 67" fill="none" stroke="#fffdf7" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+</svg>

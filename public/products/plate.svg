@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Bộ đĩa thủ công — hình minh họa Demo</title>
+  <desc id="desc">Ba đĩa gốm thủ công có viền tròn tông kem, xanh xám và cát.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#f7f5ee"/><stop offset="1" stop-color="#e8e5d9"/></linearGradient>
+    <radialGradient id="cream"><stop stop-color="#f8f1de"/><stop offset=".7" stop-color="#e9dfc6"/><stop offset=".88" stop-color="#c6b798"/><stop offset="1" stop-color="#eee3ca"/></radialGradient>
+    <radialGradient id="sage"><stop stop-color="#aab5a1"/><stop offset=".72" stop-color="#b8c1ae"/><stop offset=".88" stop-color="#87947f"/><stop offset="1" stop-color="#c3cbb7"/></radialGradient>
+    <radialGradient id="sand"><stop stop-color="#d6b58e"/><stop offset=".7" stop-color="#ddbf9b"/><stop offset=".88" stop-color="#b69069"/><stop offset="1" stop-color="#e4c9a6"/></radialGradient>
+  </defs>
+  <rect width="640" height="480" rx="24" fill="url(#bg)"/>
+  <path d="M0 346L640 386V480H0Z" fill="#d8cfbd"/>
+  <path d="M38 0H128L278 480H171Z" fill="#fdfaf2" opacity=".5"/>
+  <ellipse cx="292" cy="389" rx="214" ry="31" fill="#7d7159" opacity=".13"/>
+  <circle cx="256" cy="243" r="156" fill="#b6a88c"/>
+  <circle cx="252" cy="234" r="156" fill="url(#cream)"/>
+  <circle cx="252" cy="234" r="114" fill="none" stroke="#b9aa8c" stroke-width="2" opacity=".55"/>
+  <circle cx="252" cy="234" r="142" fill="none" stroke="#fff7e5" stroke-width="3" opacity=".7"/>
+  <circle cx="394" cy="287" r="120" fill="#75816c"/>
+  <circle cx="391" cy="280" r="120" fill="url(#sage)"/>
+  <circle cx="391" cy="280" r="85" fill="none" stroke="#6f7e65" stroke-width="2" opacity=".6"/>
+  <circle cx="391" cy="280" r="110" fill="none" stroke="#e4e8d5" stroke-width="3" opacity=".6"/>
+  <circle cx="267" cy="337" r="85" fill="#a9845d"/>
+  <circle cx="265" cy="332" r="85" fill="url(#sand)"/>
+  <circle cx="265" cy="332" r="59" fill="none" stroke="#a17c55" stroke-width="2" opacity=".55"/>
+  <circle cx="265" cy="332" r="76" fill="none" stroke="#f6dfbd" stroke-width="2" opacity=".7"/>
+  <g fill="#81775e" opacity=".32"><circle cx="197" cy="174" r="2"/><circle cx="286" cy="202" r="1.5"/><circle cx="172" cy="272" r="1.8"/><circle cx="307" cy="142" r="1.3"/><circle cx="388" cy="242" r="1.8"/><circle cx="448" cy="290" r="1.3"/><circle cx="247" cy="317" r="1.5"/><circle cx="296" cy="351" r="1.4"/></g>
+  <path d="M523 79L475 159M523 79L545 76M523 79L524 56" stroke="#878e66" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <g fill="#a1aa7c"><ellipse cx="493" cy="130" rx="10" ry="24" transform="rotate(40 493 130)"/><ellipse cx="513" cy="107" rx="10" ry="24" transform="rotate(-48 513 107)"/><ellipse cx="529" cy="77" rx="10" ry="23" transform="rotate(44 529 77)"/></g>
+</svg>
