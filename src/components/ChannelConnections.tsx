@@ -143,6 +143,68 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
     () => `TikTok Shop 0${loadActiveTikTokShops().length + 1} · Phụ Kiện & Túi Xách`,
   )
   const [newShopCategory, setNewShopCategory] = useState('Phụ kiện')
+  const [simShopId, setSimShopId] = useState('tiktok-shop-01')
+  const [simMessageText, setSimMessageText] = useState(
+    'Shop ơi cho mình đặt 2 Son kem lì Velvet Tint Đỏ Đất và 1 Serum Vitamin C Brightening 30ml giao về 120 Cầu Giấy Hà Nội, SĐT 0988123456 nhé!',
+  )
+
+  const handleSimulateIncomingMessage = async () => {
+    const targetShop =
+      embeddedShops.find((s) => s.shopId === simShopId) ??
+      embeddedShops[0] ??
+      listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)[0]
+    const cleanText = simMessageText.trim()
+    if (!cleanText) return
+    const currentInbox = await inboxService.load()
+    const nowIso = new Date().toISOString()
+    const convId = `conv-tt-msg-${Date.now()}`
+    const shopCategory = targetShop.categoryName ?? 'Mỹ phẩm'
+    const newConv: InboxData['conversations'][number] = {
+      id: convId,
+      customerId: currentInbox.customers[1]?.id ?? currentInbox.customers[0]?.id ?? 'CUS-001',
+      channel: 'tiktok',
+      shopId: targetShop.shopId,
+      category: shopCategory,
+      status: 'open',
+      priority: 'high',
+      assigneeId: 'agent-linh',
+      teamId: 'team-sales',
+      subject: `[${targetShop.accountName.replace('TikTok ', '')}] Khách đặt hàng mới trên TikTok`,
+      unread: 1,
+      lastMessageAt: nowIso,
+      dueAt: nowIso,
+      sourceUrl: null,
+      tags: [shopCategory, targetShop.shopId],
+      mentioned: false,
+      bot: false,
+      messages: [
+        {
+          id: `${convId}-m1`,
+          type: 'incoming',
+          text: cleanText,
+          sentAt: nowIso,
+          delivery: 'delivered',
+          attachments: [],
+        },
+      ],
+    }
+    const updatedInbox: InboxData = {
+      ...currentInbox,
+      conversations: [newConv, ...currentInbox.conversations],
+    }
+    try {
+      window.localStorage.setItem('smartsales.inbox.demo.tiktok.v4', JSON.stringify(updatedInbox))
+    } catch {
+      // ignore storage errors
+    }
+    onSynced(updatedInbox)
+    onNotify(
+      t(
+        `Đã nhận tin nhắn khách hàng mới vào ${targetShop.accountName}! Bấm "Về hộp thư" để xem và Tạo đơn nhanh.`,
+        `Received new customer message in ${targetShop.accountName}! Click "Back to inbox" to view and Quick Order.`,
+      ),
+    )
+  }
 
   const handleAddTikTokShop = async () => {
     try {
@@ -541,6 +603,75 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
                       >
                         <Plus size={14} />
                         {t('Kết nối & Đồng bộ Shop', 'Connect & Sync Shop')}
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      marginTop: '14px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid var(--border-subtle, #e6e4f0)',
+                    }}
+                  >
+                    <strong style={{ display: 'block', marginBottom: '6px' }}>
+                      {t(
+                        '📩 Test bắn tin nhắn khách hàng mới vào Hộp thư (Giả lập Webhook Tin nhắn TikTok Shop):',
+                        '📩 Simulate incoming TikTok Shop customer message (Webhook Inbox Tester):',
+                      )}
+                    </strong>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(180px, 1fr) 2fr auto',
+                        gap: '8px',
+                        alignItems: 'end',
+                      }}
+                    >
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <small>{t('Gửi vào TikTok Shop', 'Target TikTok Shop')}</small>
+                        <select
+                          value={simShopId}
+                          onChange={(e) => {
+                            const nextId = e.target.value
+                            setSimShopId(nextId)
+                            const found = embeddedShops.find((s) => s.shopId === nextId)
+                            const catNode = PRODUCT_CATEGORY_TREE.find(
+                              (c) => c.name === found?.categoryName,
+                            )
+                            const prod = catNode?.products[0]
+                            if (prod) {
+                              setSimMessageText(
+                                `Shop ơi cho mình đặt 2 ${prod.name} giao về 120 Cầu Giấy Hà Nội, SĐT 0988123456 nhé!`,
+                              )
+                            }
+                          }}
+                        >
+                          {embeddedShops.map((s) => (
+                            <option key={s.shopId} value={s.shopId}>
+                              {s.accountName}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <small>
+                          {t(
+                            'Nội dung tin nhắn khách gửi (có tên SP, số lượng, SĐT, địa chỉ)',
+                            'Customer message text (with product, qty, phone, address)',
+                          )}
+                        </small>
+                        <input
+                          type="text"
+                          value={simMessageText}
+                          onChange={(e) => setSimMessageText(e.target.value)}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="button button-primary"
+                        onClick={() => void handleSimulateIncomingMessage()}
+                      >
+                        {t('Bắn tin nhắn vào Hộp thư', 'Send message to Inbox')}
                       </button>
                     </div>
                   </div>
