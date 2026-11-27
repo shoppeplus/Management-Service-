@@ -1,89 +1,51 @@
-# SmartSales
+# SmartSales Suite
 
-**Nền tảng quản lý và vận hành bán hàng đa kênh** — xây dựng với React, TypeScript và Node.js, hỗ trợ giao diện tiếng Việt và tiếng Anh.
-
-> Dự án hiện có chế độ Demo chạy độc lập và backend Live dùng Node.js/SQLite. Một số tích hợp kênh bán hàng và chức năng nâng cao vẫn đang được phát triển.
-
-## Tính năng
-
-- **Vận hành bán hàng:** tổng quan, khách hàng, hộp thư, chăm sóc, đơn hàng và vận chuyển.
-- **Quản trị:** báo cáo, tài khoản nhân viên và phân quyền.
-- **Kho & báo giá:** quản lý SKU, nhập/xuất/chuyển/kiểm kê và xuất báo giá PDF.
-- **Phân tích thị trường:** Gemini tự tìm kiếm web và trả về bản phân tích tóm tắt.
-- **Tích hợp:** cấu hình Gemini, Telegram, Shopee, Lazada và TikTok Shop trong phần Cài đặt.
-
-Xem [lộ trình và các giới hạn hiện tại](docs/IMPLEMENTATION_ROADMAP.md) trước khi dùng dữ liệu thật.
-
-## Công nghệ
-
-| Thành phần          | Công nghệ               |
-| ------------------- | ----------------------- |
-| Giao diện           | React, TypeScript, Vite |
-| API                 | Node.js                 |
-| Cơ sở dữ liệu local | SQLite                  |
-| Kiểm thử            | Vitest, Testing Library |
+Nền tảng quản lý và vận hành bán hàng đa kênh, xây dựng bằng React, TypeScript và Node.js. Giao diện hỗ trợ tiếng Việt và tiếng Anh.
 
 ## Yêu cầu
 
-- Node.js **22.12 trở lên**
+- Node.js 22.12 trở lên
 - npm
 
-## Bắt đầu nhanh — Demo
+## Cài đặt và chạy Demo
+
+Mở PowerShell và chạy:
 
 ```powershell
-git clone <repository-url>
-cd <project-folder>
+git clone https://github.com/shoppeplus/Management-Service-.git
+cd Management-Service-
 npm ci
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-```
-
-Trong `.env`, đặt:
-
-```env
-VITE_APP_MODE=demo
-```
-
-Chạy ứng dụng:
-
-```powershell
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Mở [http://127.0.0.1:5173](http://127.0.0.1:5173). Demo lưu dữ liệu trong trình duyệt; không dùng dữ liệu khách hàng thật.
+Mở địa chỉ được Vite hiển thị (mặc định là [http://127.0.0.1:5173](http://127.0.0.1:5173)). File `.env.example` đặt `VITE_APP_MODE=demo`, vì vậy có thể chạy Demo ngay mà không cần API key. Demo dùng dữ liệu mẫu trong trình duyệt; không nhập dữ liệu khách hàng thật.
 
-## Chạy backend Live
+## Chạy backend
 
-Đặt `VITE_APP_MODE=live` trong `.env`, sau đó mở hai terminal:
+Backend dùng SQLite local. Mở `.env` và đổi `VITE_APP_MODE=demo` thành `VITE_APP_MODE=live`, sau đó mở hai cửa sổ PowerShell tại thư mục dự án:
 
 ```powershell
-# Terminal 1 — API
+# Cửa sổ 1 — backend API tại http://127.0.0.1:3002
 npm run server:inventory
 ```
 
 ```powershell
-# Terminal 2 — giao diện
+# Cửa sổ 2 — giao diện tại http://127.0.0.1:5173
 npm run dev
 ```
 
-Tạo tài khoản tại `/register` rồi đăng nhập bằng owner/admin. API mặc định chạy tại `http://127.0.0.1:3001`; Vite chuyển tiếp các yêu cầu `/api/v1` trong môi trường phát triển.
+Vite proxy các yêu cầu `/api/v1` tới backend local. Tạo tài khoản tại `/register` để bắt đầu. Dữ liệu backend mặc định nằm trong `var/inventory.sqlite`; thư mục này chỉ dành cho dữ liệu local và không được đưa lên Git.
 
-### Cấu hình AI và kết nối
+### Cấu hình tích hợp
 
-Trong **Cài đặt**, nhập và kiểm tra API key Gemini hoặc bot token Telegram. Để lưu credentials mã hóa phía máy chủ, tạo `INTEGRATION_ENCRYPTION_KEY` một lần:
+Các API key và token chỉ dành cho backend, được đặt trong `.env` (không dùng tiền tố `VITE_`). Để lưu credentials tích hợp đã mã hóa, tạo `INTEGRATION_ENCRYPTION_KEY`:
 
 ```powershell
 node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
 ```
 
-Giữ khóa này bí mật và ổn định; nếu thay đổi, máy chủ không thể giải mã credentials đã lưu. Có thể cấu hình Gemini và Telegram bằng biến môi trường phía máy chủ tương ứng.
-
-Shopee, Lazada và TikTok Shop hiện hỗ trợ nhập credentials, kiểm tra API seller chỉ đọc, lưu và ngắt kết nối. Luồng OAuth/callback, tự làm mới token và đồng bộ đơn hàng/sản phẩm chưa được triển khai.
-
-## Triển khai
-
-Vercel được cấu hình sẵn để triển khai **giao diện Demo**: `vercel.json` chạy `npm run build:vercel` (typecheck và build với mode Demo), xuất bản thư mục `dist` và hỗ trợ các đường dẫn SPA. Không cần thêm biến môi trường để chạy Demo.
-
-Chế độ Live cần API được triển khai riêng trên máy chủ có lưu trữ dữ liệu bền vững. Backend hiện dùng SQLite trên hệ thống tệp local; không triển khai API này như function tạm thời trên Vercel. Nếu cấu hình giao diện Live, đặt các URL API production phù hợp trong Environment Variables của Vercel và bảo đảm chúng dùng HTTPS.
+Giữ khóa này bí mật và ổn định; nếu thay đổi, backend không thể giải mã credentials đã lưu. Các kết nối Gemini, Telegram và marketplace cần cấu hình riêng theo `.env.example`. Một số tích hợp vẫn đang phát triển; không xem dữ liệu Demo hoặc chức năng mô phỏng là kết nối live.
 
 ## Lệnh thường dùng
 
@@ -94,15 +56,17 @@ npm test
 npm run build
 ```
 
-## Bảo mật và giới hạn
+## Cấu trúc dự án
 
-- Không commit `.env`, API keys, access tokens hoặc dữ liệu khách hàng.
-- Không đưa secrets vào biến `VITE_*`; các biến này được đóng gói vào trình duyệt.
-- Hộp thư không tự đồng bộ theo chu kỳ; đồng bộ khi người dùng chủ động thao tác.
-- Demo và một số kênh/tính năng còn mô phỏng hoặc chưa hoàn thiện; xem [lộ trình triển khai](docs/IMPLEMENTATION_ROADMAP.md).
+- `src/` — ứng dụng React, giao diện, module nghiệp vụ và kiểm thử.
+- `server/` — API Node.js, dịch vụ và các migration SQLite.
+- `public/` — hình ảnh, biểu tượng và font chữ tĩnh.
+- `var/` — dữ liệu SQLite local được tạo khi chạy backend; không commit.
 
-## Tài liệu
+Xem thêm [hướng dẫn đóng góp](CONTRIBUTING.md) và [chính sách bảo mật](SECURITY.md).
 
-[API](docs/api-contract.md) · [Kiến trúc](docs/architecture.md) · [API kho](docs/inventory-api.md) · [Kịch bản Demo](docs/demo-walkthrough.md)
+## Bảo mật
 
-Test git log lần 2
+- Không commit `.env`, API key, access token hoặc dữ liệu khách hàng.
+- Không đưa secrets vào biến `VITE_*`; chúng được đóng gói vào trình duyệt.
+- Demo lưu dữ liệu trong trình duyệt và không phù hợp với hồ sơ khách hàng thật.

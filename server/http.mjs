@@ -1360,10 +1360,15 @@ export function createInventoryServer({
               'Vui lòng nhập đầy đủ Email/SĐT đăng nhập, mật khẩu và tên tài khoản/cửa hàng.',
             )
           }
-          const appKey = String(process.env.TIKTOK_SHOP_APP_KEY || '6m1n7b2j7876s').trim()
-          const appSecret = String(
-            process.env.TIKTOK_SHOP_APP_SECRET || 'ad28cb6cde5180bba414b498ef0715e9d77d415c',
-          ).trim()
+          const appKey = String(process.env.TIKTOK_SHOP_APP_KEY || '').trim()
+          const appSecret = String(process.env.TIKTOK_SHOP_APP_SECRET || '').trim()
+          if (!appKey || !appSecret) {
+            throw fail(
+              503,
+              'TIKTOK_SHOP_NOT_CONFIGURED',
+              'Máy chủ chưa cấu hình TIKTOK_SHOP_APP_KEY và TIKTOK_SHOP_APP_SECRET.',
+            )
+          }
           const ts = String(Math.floor(now().getTime() / 1000))
           const signature = hmacSignTikTok(
             appSecret,

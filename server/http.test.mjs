@@ -152,6 +152,34 @@ describe('Inventory HTTP API with migrated database', () => {
     expect(await callback.text()).toContain('Không thể kết nối')
   })
 
+  it('does not complete TikTok Shop login without server credentials', async () => {
+    const appKey = process.env.TIKTOK_SHOP_APP_KEY
+    const appSecret = process.env.TIKTOK_SHOP_APP_SECRET
+    delete process.env.TIKTOK_SHOP_APP_KEY
+    delete process.env.TIKTOK_SHOP_APP_SECRET
+
+    try {
+      const { response, body } = await request('/tiktokshop/live/complete-login', {
+        method: 'POST',
+        headers: { ...authorize(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loginEmail: 'seller@example.com',
+          password: 'test-password',
+          accountName: 'Test Shop',
+        }),
+      })
+
+      expect(response.status).toBe(503)
+      expect(body.error.code).toBe('TIKTOK_SHOP_NOT_CONFIGURED')
+      expect(db.prepare('SELECT COUNT(*) AS count FROM integration_credentials').get().count).toBe(0)
+    } finally {
+      if (appKey === undefined) delete process.env.TIKTOK_SHOP_APP_KEY
+      else process.env.TIKTOK_SHOP_APP_KEY = appKey
+      if (appSecret === undefined) delete process.env.TIKTOK_SHOP_APP_SECRET
+      else process.env.TIKTOK_SHOP_APP_SECRET = appSecret
+    }
+  })
+
   it('limits market research status and history to authenticated administrators', async () => {
     const unauthenticated = await request('/market-intelligence/status')
     expect(unauthenticated.response.status).toBe(401)
