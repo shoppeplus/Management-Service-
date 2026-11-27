@@ -138,7 +138,16 @@ export function getDefaultRoute(access: AppAccess) {
     access.role === 'accountant'
       ? ['Accounting']
       : isAdministrator(access)
-        ? ['Dashboard', 'Admin', 'Inbox', 'CRM', 'Customer Care', 'Orders', 'Logistics', 'Inventory']
+        ? [
+            'Dashboard',
+            'Admin',
+            'Inbox',
+            'CRM',
+            'Customer Care',
+            'Orders',
+            'Logistics',
+            'Inventory',
+          ]
         : [
             'Inbox',
             'Dashboard',

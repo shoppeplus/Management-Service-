@@ -218,62 +218,64 @@ export function ConversationHeader({
           >
             {detailsOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
           </button>
-          {canManage && <div className="dropdown-anchor" ref={menuRef}>
-            <button
-              className="icon-button"
-              aria-label={t('Thao tác hội thoại khác', 'More conversation actions')}
-              aria-expanded={menu}
-              onClick={() => setMenu(!menu)}
-            >
-              <MoreHorizontal size={20} />
-            </button>
-            {menu && (
-              <div className="dropdown-menu">
-                <button
-                  onClick={() => {
-                    void update({ unread: 1 })
-                    setMenu(false)
-                  }}
-                >
-                  <StickyNote size={14} /> {t('Đánh dấu chưa đọc', 'Mark as unread')}
-                </button>
-                <button
-                  onClick={() => {
-                    void navigator.clipboard
-                      .writeText(`${window.location.origin}/inbox?conversation=${c.id}`)
-                      .then(
-                        () =>
-                          onNotify(
-                            t('Đã sao chép liên kết hội thoại.', 'Conversation link copied.'),
-                          ),
-                        () =>
-                          onNotify(
-                            t(
-                              'Không thể sao chép. Trình duyệt chưa cấp quyền clipboard.',
-                              'Unable to copy. Clipboard permission is unavailable.',
+          {canManage && (
+            <div className="dropdown-anchor" ref={menuRef}>
+              <button
+                className="icon-button"
+                aria-label={t('Thao tác hội thoại khác', 'More conversation actions')}
+                aria-expanded={menu}
+                onClick={() => setMenu(!menu)}
+              >
+                <MoreHorizontal size={20} />
+              </button>
+              {menu && (
+                <div className="dropdown-menu">
+                  <button
+                    onClick={() => {
+                      void update({ unread: 1 })
+                      setMenu(false)
+                    }}
+                  >
+                    <StickyNote size={14} /> {t('Đánh dấu chưa đọc', 'Mark as unread')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      void navigator.clipboard
+                        .writeText(`${window.location.origin}/inbox?conversation=${c.id}`)
+                        .then(
+                          () =>
+                            onNotify(
+                              t('Đã sao chép liên kết hội thoại.', 'Conversation link copied.'),
                             ),
-                            'error',
-                          ),
-                      )
-                    setMenu(false)
-                  }}
-                >
-                  <Copy size={14} /> {t('Sao chép liên kết hội thoại', 'Copy conversation link')}
-                </button>
-                <button
-                  onClick={() => {
-                    void update({ status: c.status === 'closed' ? 'open' : 'closed' })
-                    setMenu(false)
-                  }}
-                >
-                  <LockKeyhole size={14} />
-                  {c.status === 'closed'
-                    ? t('Mở lại hội thoại', 'Reopen conversation')
-                    : t('Đóng hội thoại', 'Close conversation')}
-                </button>
-              </div>
-            )}
-          </div>}
+                          () =>
+                            onNotify(
+                              t(
+                                'Không thể sao chép. Trình duyệt chưa cấp quyền clipboard.',
+                                'Unable to copy. Clipboard permission is unavailable.',
+                              ),
+                              'error',
+                            ),
+                        )
+                      setMenu(false)
+                    }}
+                  >
+                    <Copy size={14} /> {t('Sao chép liên kết hội thoại', 'Copy conversation link')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      void update({ status: c.status === 'closed' ? 'open' : 'closed' })
+                      setMenu(false)
+                    }}
+                  >
+                    <LockKeyhole size={14} />
+                    {c.status === 'closed'
+                      ? t('Mở lại hội thoại', 'Reopen conversation')
+                      : t('Đóng hội thoại', 'Close conversation')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
       {canManage && (
@@ -618,58 +620,63 @@ export function MessageComposer({
     (type === 'note' && !canManage)
   return (
     <div className={`composer ${type === 'note' ? 'composer-note' : ''}`}>
-      {canCompose && <div className="composer-tabs">
-        {canMessage && (
-          <button
-            className={type === 'outgoing' ? 'active' : ''}
-            onClick={() => setType('outgoing')}
-          >
-            <Send size={13} /> {t('Trả lời', 'Reply')}
-          </button>
-        )}
-        {canManage && (
-          <button className={type === 'note' ? 'active' : ''} onClick={() => setType('note')}>
-            <StickyNote size={13} /> {t('Ghi chú', 'Note')}
-          </button>
-        )}
-        <span className="composer-channel">
-          {type === 'note' ? (
-            <>
-              <LockKeyhole size={11} /> {t('Chỉ nội bộ nhóm xem được', 'Only visible to your team')}
-            </>
-          ) : (
-            <>
-              <ChannelIcon channel={conversation.channel} size={12} /> {t('qua', 'via')}{' '}
-              {label(CHANNELS.find((c) => c.id === conversation.channel)?.label || '')}
-            </>
+      {canCompose && (
+        <div className="composer-tabs">
+          {canMessage && (
+            <button
+              className={type === 'outgoing' ? 'active' : ''}
+              onClick={() => setType('outgoing')}
+            >
+              <Send size={13} /> {t('Trả lời', 'Reply')}
+            </button>
           )}
-        </span>
-      </div>}
-      {canCompose && <textarea
-        ref={textarea}
-        aria-label={
-          type === 'note'
-            ? t('Ghi chú nội bộ', 'Internal note')
-            : t('Tin nhắn trả lời', 'Reply message')
-        }
-        placeholder={
-          conversation.status === 'closed' && type === 'outgoing'
-            ? t('Mở lại hội thoại để trả lời…', 'Reopen this conversation to reply…')
-            : type === 'note'
-              ? t('Thêm ghi chú cho nhóm của bạn…', 'Add a note for your team…')
-              : t('Nhập nội dung trả lời…', 'Write a thoughtful reply…')
-        }
-        value={text}
-        disabled={disabled}
-        maxLength={10000}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault()
-            void send()
+          {canManage && (
+            <button className={type === 'note' ? 'active' : ''} onClick={() => setType('note')}>
+              <StickyNote size={13} /> {t('Ghi chú', 'Note')}
+            </button>
+          )}
+          <span className="composer-channel">
+            {type === 'note' ? (
+              <>
+                <LockKeyhole size={11} />{' '}
+                {t('Chỉ nội bộ nhóm xem được', 'Only visible to your team')}
+              </>
+            ) : (
+              <>
+                <ChannelIcon channel={conversation.channel} size={12} /> {t('qua', 'via')}{' '}
+                {label(CHANNELS.find((c) => c.id === conversation.channel)?.label || '')}
+              </>
+            )}
+          </span>
+        </div>
+      )}
+      {canCompose && (
+        <textarea
+          ref={textarea}
+          aria-label={
+            type === 'note'
+              ? t('Ghi chú nội bộ', 'Internal note')
+              : t('Tin nhắn trả lời', 'Reply message')
           }
-        }}
-      />}
+          placeholder={
+            conversation.status === 'closed' && type === 'outgoing'
+              ? t('Mở lại hội thoại để trả lời…', 'Reopen this conversation to reply…')
+              : type === 'note'
+                ? t('Thêm ghi chú cho nhóm của bạn…', 'Add a note for your team…')
+                : t('Nhập nội dung trả lời…', 'Write a thoughtful reply…')
+          }
+          value={text}
+          disabled={disabled}
+          maxLength={10000}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault()
+              void send()
+            }
+          }}
+        />
+      )}
       {canCompose && attachments.length > 0 && (
         <div className="pending-attachments">
           {attachments.map((a) => (
@@ -847,19 +854,21 @@ export function MessageComposer({
           </button>
         )}
       </div>
-      {canCompose && <div className="composer-footer">
-        <span>
-          {mode === 'demo'
-            ? t(
-                'Chế độ Demo · Tin nhắn chỉ lưu trên trình duyệt',
-                'Demo mode · Messages stay in this browser',
-              )
-            : t('Chế độ trực tiếp · Kết nối qua API', 'Live mode · API adapter')}
-        </span>
-        <span>
-          <kbd>Ctrl</kbd> + <kbd>↵</kbd> {t('để gửi', 'to send')}
-        </span>
-      </div>}
+      {canCompose && (
+        <div className="composer-footer">
+          <span>
+            {mode === 'demo'
+              ? t(
+                  'Chế độ Demo · Tin nhắn chỉ lưu trên trình duyệt',
+                  'Demo mode · Messages stay in this browser',
+                )
+              : t('Chế độ trực tiếp · Kết nối qua API', 'Live mode · API adapter')}
+          </span>
+          <span>
+            <kbd>Ctrl</kbd> + <kbd>↵</kbd> {t('để gửi', 'to send')}
+          </span>
+        </div>
+      )}
     </div>
   )
 }

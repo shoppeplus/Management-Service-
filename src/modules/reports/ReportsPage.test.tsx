@@ -105,7 +105,12 @@ describe('Reports route', () => {
           closingCredit: 0,
         },
       ],
-      totals: { periodDebit: 10000, periodCredit: 10000, closingDebit: 10000, closingCredit: 10000 },
+      totals: {
+        periodDebit: 10000,
+        periodCredit: 10000,
+        closingDebit: 10000,
+        closingCredit: 10000,
+      },
     })
     vi.spyOn(accountingService, 'listJournals').mockResolvedValue({
       entries: [],
@@ -120,7 +125,9 @@ describe('Reports route', () => {
     await user.click(screen.getByRole('tab', { name: 'Sổ kế toán' }))
 
     expect(await screen.findByRole('heading', { name: 'Sổ kế toán nội bộ' })).toBeInTheDocument()
-    expect(screen.queryByRole('group', { name: 'Khoảng thời gian báo cáo' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('group', { name: 'Khoảng thời gian báo cáo' }),
+    ).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Làm mới số liệu' })).not.toBeInTheDocument()
     expect(screen.getByText('A-CASH')).toBeInTheDocument()
     expect(screen.getByText(/chưa tự đồng bộ từ đơn hàng/i)).toBeInTheDocument()
@@ -165,7 +172,10 @@ describe('Reports route', () => {
     )
     await screen.findByRole('heading', { level: 1, name: 'Báo cáo doanh thu' })
     await user.click(screen.getByRole('tab', { name: 'Sổ kế toán' }))
-    await user.selectOptions(await screen.findByRole('combobox', { name: 'Chế độ sổ kế toán' }), 'journals')
+    await user.selectOptions(
+      await screen.findByRole('combobox', { name: 'Chế độ sổ kế toán' }),
+      'journals',
+    )
     await user.click(await screen.findByRole('button', { name: 'Tải thêm chứng từ' }))
 
     expect(await screen.findByText('JE-101')).toBeInTheDocument()

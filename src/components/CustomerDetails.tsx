@@ -376,7 +376,9 @@ export default function CustomerDetails({
                 ))}
               </select>
             ) : (
-              <span>{label(conversation.status[0].toUpperCase() + conversation.status.slice(1))}</span>
+              <span>
+                {label(conversation.status[0].toUpperCase() + conversation.status.slice(1))}
+              </span>
             )}
           </div>
           <div className="detail-row">
@@ -397,7 +399,9 @@ export default function CustomerDetails({
                 ))}
               </select>
             ) : (
-              <span>{label(conversation.priority[0].toUpperCase() + conversation.priority.slice(1))}</span>
+              <span>
+                {label(conversation.priority[0].toUpperCase() + conversation.priority.slice(1))}
+              </span>
             )}
           </div>
           <div className="detail-row due-date-row">
@@ -489,25 +493,27 @@ export default function CustomerDetails({
               <span className="muted">{t('Chưa có nhãn', 'No tags yet')}</span>
             )}
           </div>
-          {canManageConversation && <form className="tag-form" onSubmit={addTag}>
-            <input
-              className="tag-input"
-              aria-label={t('Nhãn mới', 'New tag')}
-              placeholder={t('Thêm nhãn…', 'Add a tag…')}
-              value={tag}
-              maxLength={30}
-              disabled={busy}
-              onChange={(event) => setTag(event.target.value)}
-            />
-            <button
-              className="icon-button"
-              aria-label={t('Thêm nhãn', 'Add tag')}
-              title={t('Thêm nhãn', 'Add tag')}
-              disabled={busy || !tag.trim()}
-            >
-              <Plus size={15} />
-            </button>
-          </form>}
+          {canManageConversation && (
+            <form className="tag-form" onSubmit={addTag}>
+              <input
+                className="tag-input"
+                aria-label={t('Nhãn mới', 'New tag')}
+                placeholder={t('Thêm nhãn…', 'Add a tag…')}
+                value={tag}
+                maxLength={30}
+                disabled={busy}
+                onChange={(event) => setTag(event.target.value)}
+              />
+              <button
+                className="icon-button"
+                aria-label={t('Thêm nhãn', 'Add tag')}
+                title={t('Thêm nhãn', 'Add tag')}
+                disabled={busy || !tag.trim()}
+              >
+                <Plus size={15} />
+              </button>
+            </form>
+          )}
         </section>
         <section className="details-section">
           <div className="section-heading">

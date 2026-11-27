@@ -86,10 +86,13 @@ describe('SQLite business data', () => {
       status: 'confirmed',
     })
     expect(confirmed.orders[0].status).toBe('confirmed')
-    expect(inventory.snapshot(actor).balances.find((balance) => balance.skuId === skuId)?.reserved)
-      .toBe(2)
-    expect(db.prepare('SELECT COUNT(*) AS count FROM audit_events WHERE tenant_id=?').get(actor.tenantId).count)
-      .toBeGreaterThan(0)
+    expect(
+      inventory.snapshot(actor).balances.find((balance) => balance.skuId === skuId)?.reserved,
+    ).toBe(2)
+    expect(
+      db.prepare('SELECT COUNT(*) AS count FROM audit_events WHERE tenant_id=?').get(actor.tenantId)
+        .count,
+    ).toBeGreaterThan(0)
   })
 
   it('persists internal notes and ticket comments while rejecting unsent live replies', () => {
@@ -109,7 +112,10 @@ describe('SQLite business data', () => {
       ) VALUES(?,?,?,'livechat','Question',?,?,?,?)`,
     ).run('conversation-one', actor.tenantId, customer.id, now, now, now, now)
 
-    business.updateConversation(actor, 'conversation-one', { status: 'pending', tags: ['Follow up'] })
+    business.updateConversation(actor, 'conversation-one', {
+      status: 'pending',
+      tags: ['Follow up'],
+    })
     const noted = business.sendMessage(actor, 'conversation-one', {
       type: 'note',
       text: 'Call customer tomorrow.',
@@ -134,7 +140,9 @@ describe('SQLite business data', () => {
       assigneeId: actor.userId,
     })
     const ticketId = snapshot.tickets[0].id
-    const commented = business.addTicketComment(actor, ticketId, { text: 'Checking carrier details.' })
+    const commented = business.addTicketComment(actor, ticketId, {
+      text: 'Checking carrier details.',
+    })
     expect(commented.tickets[0].comments).toHaveLength(1)
   })
 
@@ -163,9 +171,9 @@ describe('SQLite business data', () => {
     business.changeOrderStatus(actor, orderId, { status: 'confirmed' })
     business.changeOrderStatus(actor, orderId, { status: 'packing' })
 
-    expect(() =>
-      business.createShipment(actor, { orderId, carrierId: 'demo-express' }),
-    ).toThrow(/Chưa cấu hình hãng vận chuyển thật/)
+    expect(() => business.createShipment(actor, { orderId, carrierId: 'demo-express' })).toThrow(
+      /Chưa cấu hình hãng vận chuyển thật/,
+    )
     const created = business.createShipment(actor, { orderId, carrierId: 'manual' })
     const shipment = created.shipments[0]
     expect(shipment).toMatchObject({ carrierId: 'manual', status: 'ready' })

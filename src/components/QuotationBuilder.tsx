@@ -18,6 +18,7 @@ import {
 import type { Customer } from '../types/inbox'
 import type { QuotationInput, QuotationParty } from '../types/quotation'
 import { operationsErrorMessage } from '../modules/operations/service'
+import { APP_MODE } from '../services/inboxService'
 import { quotationCatalogService } from '../services/quotationCatalog'
 import type { QuotationCatalog, QuotationCatalogProduct } from '../services/quotationCatalog'
 import { createDemoQuotationCatalog } from '../lib/productCategories'
@@ -174,7 +175,7 @@ export default function QuotationBuilder({
       .catch((cause: unknown) => {
         if (!active) return
         const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
-        if (!isTestEnv) {
+        if (!isTestEnv && APP_MODE === 'demo') {
           const demoCatalog = createDemoQuotationCatalog(warehouseId || null)
           catalogScope.current = JSON.stringify([demoCatalog.tenant.id, demoCatalog.actor.userId])
           setCatalog(demoCatalog)

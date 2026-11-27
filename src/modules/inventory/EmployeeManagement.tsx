@@ -879,7 +879,9 @@ export default function EmployeeManagement({
                                     disabled={busy}
                                     onClick={(event) => {
                                       showRoleEditor(user)
-                                      event.currentTarget.closest('details')?.removeAttribute('open')
+                                      event.currentTarget
+                                        .closest('details')
+                                        ?.removeAttribute('open')
                                     }}
                                   >
                                     <Pencil size={14} />
@@ -890,7 +892,9 @@ export default function EmployeeManagement({
                                     disabled={busy}
                                     onClick={(event) => {
                                       void toggleUser(user)
-                                      event.currentTarget.closest('details')?.removeAttribute('open')
+                                      event.currentTarget
+                                        .closest('details')
+                                        ?.removeAttribute('open')
                                     }}
                                   >
                                     {user.active ? <Ban size={14} /> : <Check size={14} />}
@@ -903,7 +907,9 @@ export default function EmployeeManagement({
                                     disabled={busy}
                                     onClick={(event) => {
                                       setPasswordUser(user)
-                                      event.currentTarget.closest('details')?.removeAttribute('open')
+                                      event.currentTarget
+                                        .closest('details')
+                                        ?.removeAttribute('open')
                                     }}
                                   >
                                     <KeyRound size={14} />
@@ -914,7 +920,9 @@ export default function EmployeeManagement({
                                     disabled={busy}
                                     onClick={(event) => {
                                       void showPermissions(user)
-                                      event.currentTarget.closest('details')?.removeAttribute('open')
+                                      event.currentTarget
+                                        .closest('details')
+                                        ?.removeAttribute('open')
                                     }}
                                   >
                                     <Shield size={14} />

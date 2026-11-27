@@ -22,22 +22,22 @@ Nhưng đây **chưa phải hệ thống sẵn sàng chạy chính thức**. Cá
 
 ## 2. Cái gì đang có trong base
 
-| Phân hệ/nền tảng | Trạng thái thấy trong code | Có thể kế thừa | Chưa nên tuyên bố |
-|---|---|---|---|
-| Giao diện | React 19, TypeScript, Vite, router, VI/EN, nhiều trang nghiệp vụ | Component, form, phân quyền hiển thị, test UI | Rằng mọi màn đã nghiệm thu trên máy thật/mobile |
-| API | Node.js built-in HTTP server, `/api/v1`, cùng server phục vụ auth, kho, vận hành, kế toán, market và integrations | Routing/service hiện có, validation, API tests | Rằng đã có hệ thống triển khai/giám sát production |
-| Cơ sở dữ liệu | SQLite `node:sqlite`, migration SQL, WAL, foreign keys, `BEGIN IMMEDIATE`, checksum migration | Schema/migration làm nền cho một deployment đơn máy chủ | HA, multi-writer, nhiều API replica cùng ghi một DB |
-| Tài khoản | Đăng ký tenant/owner, đăng nhập, cookie HttpOnly, quản lý nhân viên, role preset và permission override | Auth hiện có, tenant context, quyền server-side | SSO, quyền theo từng kho, workflow mời người dùng/duyệt tài khoản đầy đủ |
-| Kho | Warehouse/location/SKU, chứng từ, ledger, số dư, kiểm kê, reservation, serial/quality/warranty, idempotency | Nền nghiệp vụ mạnh nhất, có server và test | Hệ thống WMS đầy đủ: lot/expiry/picking/barcode/định tuyến kho/phân quyền theo vị trí |
-| Mua hàng | Supplier, yêu cầu bổ sung, đơn mua, duyệt tách vai trò, nhận từng phần theo đơn | Luồng mua-nhận cơ bản và kiểm quyền | Công nợ nhà cung cấp, điều khoản thanh toán, thuế/hóa đơn, chi phí mua phân bổ, đổi trả NCC |
-| Đơn bán | `salesOrder.*` trong Kho hỗ trợ tạo/giữ/hủy/xuất/trả | Xử lý tồn nguyên tử và API giá theo SKU | Toàn bộ vòng đời bán hàng, thanh toán, hoàn tiền, thuế, nhiều phương thức giao hàng |
-| CRM/Inbox/CSKH | Có API Live cho khách hàng, hội thoại, profile, ticket; Telegram có đường tích hợp riêng | Danh tính khách hàng, ghi chú, phân công/ticket cơ bản | Hộp thư đa kênh thật nếu chưa nối từng provider và xác minh quyền API |
-| Vận chuyển | Có bản ghi shipment và timeline thủ công/adapter mô phỏng | Theo dõi nội bộ, trạng thái và giao diện | Tạo vận đơn, phí, tracking webhook hoặc đối soát COD từ hãng vận chuyển |
-| Báo giá | Catalog kho và tạo PDF cục bộ trên trình duyệt | Quy tắc tính tiền, PDF, chọn SKU | Lưu báo giá server, gửi khách, phê duyệt, chuyển báo giá thành đơn |
-| Kế toán | Chart of accounts, trial balance, journal thủ công, đảo bút toán, phê duyệt mua | Ledger kép nội bộ, quyền đọc/ghi và audit | Sổ sách tuân thủ một chế độ kế toán, hóa đơn thuế, tự động hạch toán, báo cáo kê khai |
-| Phân tích thị trường | Gemini + Google Search grounding theo yêu cầu, lưu lịch sử tenant, trả tóm tắt | MVP nghiên cứu câu hỏi tự do | “Tra tất cả web”, dữ liệu thị trường đã kiểm toán, lịch chạy/quota/chi phí hoặc so sánh giá tin cậy |
-| Báo cáo | Dashboard và một số số liệu vận hành; `/reports`/kế toán có phần đang mở rộng | Chỉ số hiện có nếu định nghĩa được xác nhận | Report builder, phân tích liên phân hệ chuẩn, doanh thu đã thu hay lợi nhuận kế toán |
-| Triển khai | CI kiểm tra format/lint/test/build; Vercel build riêng mode Demo | Pipeline chất lượng và demo frontend | API Live production, database persistence/backup, staging, rollback và on-call |
+| Phân hệ/nền tảng     | Trạng thái thấy trong code                                                                                        | Có thể kế thừa                                          | Chưa nên tuyên bố                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Giao diện            | React 19, TypeScript, Vite, router, VI/EN, nhiều trang nghiệp vụ                                                  | Component, form, phân quyền hiển thị, test UI           | Rằng mọi màn đã nghiệm thu trên máy thật/mobile                                                     |
+| API                  | Node.js built-in HTTP server, `/api/v1`, cùng server phục vụ auth, kho, vận hành, kế toán, market và integrations | Routing/service hiện có, validation, API tests          | Rằng đã có hệ thống triển khai/giám sát production                                                  |
+| Cơ sở dữ liệu        | SQLite `node:sqlite`, migration SQL, WAL, foreign keys, `BEGIN IMMEDIATE`, checksum migration                     | Schema/migration làm nền cho một deployment đơn máy chủ | HA, multi-writer, nhiều API replica cùng ghi một DB                                                 |
+| Tài khoản            | Đăng ký tenant/owner, đăng nhập, cookie HttpOnly, quản lý nhân viên, role preset và permission override           | Auth hiện có, tenant context, quyền server-side         | SSO, quyền theo từng kho, workflow mời người dùng/duyệt tài khoản đầy đủ                            |
+| Kho                  | Warehouse/location/SKU, chứng từ, ledger, số dư, kiểm kê, reservation, serial/quality/warranty, idempotency       | Nền nghiệp vụ mạnh nhất, có server và test              | Hệ thống WMS đầy đủ: lot/expiry/picking/barcode/định tuyến kho/phân quyền theo vị trí               |
+| Mua hàng             | Supplier, yêu cầu bổ sung, đơn mua, duyệt tách vai trò, nhận từng phần theo đơn                                   | Luồng mua-nhận cơ bản và kiểm quyền                     | Công nợ nhà cung cấp, điều khoản thanh toán, thuế/hóa đơn, chi phí mua phân bổ, đổi trả NCC         |
+| Đơn bán              | `salesOrder.*` trong Kho hỗ trợ tạo/giữ/hủy/xuất/trả                                                              | Xử lý tồn nguyên tử và API giá theo SKU                 | Toàn bộ vòng đời bán hàng, thanh toán, hoàn tiền, thuế, nhiều phương thức giao hàng                 |
+| CRM/Inbox/CSKH       | Có API Live cho khách hàng, hội thoại, profile, ticket; Telegram có đường tích hợp riêng                          | Danh tính khách hàng, ghi chú, phân công/ticket cơ bản  | Hộp thư đa kênh thật nếu chưa nối từng provider và xác minh quyền API                               |
+| Vận chuyển           | Có bản ghi shipment và timeline thủ công/adapter mô phỏng                                                         | Theo dõi nội bộ, trạng thái và giao diện                | Tạo vận đơn, phí, tracking webhook hoặc đối soát COD từ hãng vận chuyển                             |
+| Báo giá              | Catalog kho và tạo PDF cục bộ trên trình duyệt                                                                    | Quy tắc tính tiền, PDF, chọn SKU                        | Lưu báo giá server, gửi khách, phê duyệt, chuyển báo giá thành đơn                                  |
+| Kế toán              | Chart of accounts, trial balance, journal thủ công, đảo bút toán, phê duyệt mua                                   | Ledger kép nội bộ, quyền đọc/ghi và audit               | Sổ sách tuân thủ một chế độ kế toán, hóa đơn thuế, tự động hạch toán, báo cáo kê khai               |
+| Phân tích thị trường | Gemini + Google Search grounding theo yêu cầu, lưu lịch sử tenant, trả tóm tắt                                    | MVP nghiên cứu câu hỏi tự do                            | “Tra tất cả web”, dữ liệu thị trường đã kiểm toán, lịch chạy/quota/chi phí hoặc so sánh giá tin cậy |
+| Báo cáo              | Dashboard và một số số liệu vận hành; `/reports`/kế toán có phần đang mở rộng                                     | Chỉ số hiện có nếu định nghĩa được xác nhận             | Report builder, phân tích liên phân hệ chuẩn, doanh thu đã thu hay lợi nhuận kế toán                |
+| Triển khai           | CI kiểm tra format/lint/test/build; Vercel build riêng mode Demo                                                  | Pipeline chất lượng và demo frontend                    | API Live production, database persistence/backup, staging, rollback và on-call                      |
 
 ### Phân biệt Demo và Live
 
@@ -48,19 +48,19 @@ Nhưng đây **chưa phải hệ thống sẵn sàng chạy chính thức**. Cá
 
 ## 3. Quy trình kinh doanh đầu-cuối: trạng thái hiện tại
 
-| Bước | Luồng mục tiêu | Base hiện tại và khoảng trống |
-|---|---|---|
-| 1. Khởi tạo doanh nghiệp | Tạo tenant, tài khoản owner, kho, chính sách và người dùng | Đã có đăng ký tenant, tài khoản và một số cấu hình. Cần xác nhận ai được tự đăng ký, mời nhân viên và phê duyệt tài khoản khi vận hành thật. |
-| 2. Danh mục | Import SKU, đơn vị, giá bán, giá vốn, nhà cung cấp, trạng thái | Có SKU cơ bản và nhập danh sách. Chưa có catalog sản phẩm/variants/thuộc tính động; cần chốt mã SKU, đơn vị, giá và xử lý trùng trước khi import thật. |
-| 3. Số dư mở đầu | Kiểm kê thực tế, ghi nhận tồn và giá vốn ban đầu | Có nghiệp vụ nhập/điều chỉnh, nhưng cần quy trình cutover và người duyệt; không lấy tồn từ Demo hoặc `localStorage`. |
-| 4. Đề nghị mua | Thiếu hàng → gửi yêu cầu → manager lập PO → accountant duyệt → manager nhận | Luồng nghiệp vụ đã có. Cần nghiệm thu quyền theo vai trò, nhà cung cấp, giá vốn, nhận thiếu/thừa, hủy và đối chiếu chứng từ thực tế. |
-| 5. Bán hàng | Báo giá/đơn → kiểm tra giá → giữ hàng → xác nhận | Đơn bán trong Kho hỗ trợ giữ hàng; báo giá PDF hiện không lưu và không chuyển thành đơn. Cần thống nhất đơn nào là đơn chính. |
-| 6. Xuất và giao | Soạn hàng → phiếu xuất → giao hãng → cập nhật tracking | Kho có xuất; vận đơn hiện chưa phải kết nối hãng thực. Timeline nội bộ không phải bằng chứng giao thành công. |
-| 7. Thu tiền/hoàn tiền | Ghi nhận giao dịch thanh toán/refund và đối soát | Đơn vận hành cũ có trạng thái thanh toán mô phỏng; đơn bán kho chưa bao phủ giao dịch thanh toán. Cần payment ledger và đối soát thực trước khi ghi nhận doanh thu/tiền. |
-| 8. Đổi trả/bảo hành | RMA, nhận trả theo đơn/phiếu xuất, phân loại chất lượng, hoàn tiền | Kho có nhận hàng trả và serial/quality; chưa có RMA toàn diện nối yêu cầu khách, tình trạng giao hàng, hoàn tiền và trách nhiệm NCC. |
-| 9. Kế toán | Tự động hạch toán chứng từ đã kiểm soát và đối chiếu | Có sổ cái thủ công. Chưa có mapping nghiệp vụ → journal; chưa đối chiếu tiền, giá vốn, thuế, công nợ hay hệ thống hóa đơn. |
-| 10. Báo cáo | Báo cáo đúng kỳ, quyền, tiền tệ, nguồn và thời điểm dữ liệu | Có dashboard cơ bản, nhưng thiếu read model/snapshot lịch sử và báo cáo tài chính được kế toán xác nhận. |
-| 11. Kênh và AI | Nhận đơn/tin từ kênh; nghiên cứu có nguồn và kiểm soát chi phí | Telegram/Gemini có phạm vi hẹp; kết nối sàn khác chưa đồng nghĩa đồng bộ; AI là gợi ý, cần người kiểm tra. |
+| Bước                     | Luồng mục tiêu                                                              | Base hiện tại và khoảng trống                                                                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Khởi tạo doanh nghiệp | Tạo tenant, tài khoản owner, kho, chính sách và người dùng                  | Đã có đăng ký tenant, tài khoản và một số cấu hình. Cần xác nhận ai được tự đăng ký, mời nhân viên và phê duyệt tài khoản khi vận hành thật.                             |
+| 2. Danh mục              | Import SKU, đơn vị, giá bán, giá vốn, nhà cung cấp, trạng thái              | Có SKU cơ bản và nhập danh sách. Chưa có catalog sản phẩm/variants/thuộc tính động; cần chốt mã SKU, đơn vị, giá và xử lý trùng trước khi import thật.                   |
+| 3. Số dư mở đầu          | Kiểm kê thực tế, ghi nhận tồn và giá vốn ban đầu                            | Có nghiệp vụ nhập/điều chỉnh, nhưng cần quy trình cutover và người duyệt; không lấy tồn từ Demo hoặc `localStorage`.                                                     |
+| 4. Đề nghị mua           | Thiếu hàng → gửi yêu cầu → manager lập PO → accountant duyệt → manager nhận | Luồng nghiệp vụ đã có. Cần nghiệm thu quyền theo vai trò, nhà cung cấp, giá vốn, nhận thiếu/thừa, hủy và đối chiếu chứng từ thực tế.                                     |
+| 5. Bán hàng              | Báo giá/đơn → kiểm tra giá → giữ hàng → xác nhận                            | Đơn bán trong Kho hỗ trợ giữ hàng; báo giá PDF hiện không lưu và không chuyển thành đơn. Cần thống nhất đơn nào là đơn chính.                                            |
+| 6. Xuất và giao          | Soạn hàng → phiếu xuất → giao hãng → cập nhật tracking                      | Kho có xuất; vận đơn hiện chưa phải kết nối hãng thực. Timeline nội bộ không phải bằng chứng giao thành công.                                                            |
+| 7. Thu tiền/hoàn tiền    | Ghi nhận giao dịch thanh toán/refund và đối soát                            | Đơn vận hành cũ có trạng thái thanh toán mô phỏng; đơn bán kho chưa bao phủ giao dịch thanh toán. Cần payment ledger và đối soát thực trước khi ghi nhận doanh thu/tiền. |
+| 8. Đổi trả/bảo hành      | RMA, nhận trả theo đơn/phiếu xuất, phân loại chất lượng, hoàn tiền          | Kho có nhận hàng trả và serial/quality; chưa có RMA toàn diện nối yêu cầu khách, tình trạng giao hàng, hoàn tiền và trách nhiệm NCC.                                     |
+| 9. Kế toán               | Tự động hạch toán chứng từ đã kiểm soát và đối chiếu                        | Có sổ cái thủ công. Chưa có mapping nghiệp vụ → journal; chưa đối chiếu tiền, giá vốn, thuế, công nợ hay hệ thống hóa đơn.                                               |
+| 10. Báo cáo              | Báo cáo đúng kỳ, quyền, tiền tệ, nguồn và thời điểm dữ liệu                 | Có dashboard cơ bản, nhưng thiếu read model/snapshot lịch sử và báo cáo tài chính được kế toán xác nhận.                                                                 |
+| 11. Kênh và AI           | Nhận đơn/tin từ kênh; nghiên cứu có nguồn và kiểm soát chi phí              | Telegram/Gemini có phạm vi hẹp; kết nối sàn khác chưa đồng nghĩa đồng bộ; AI là gợi ý, cần người kiểm tra.                                                               |
 
 ## 4. Cái gì nên giữ, cái gì đang dư/trùng
 

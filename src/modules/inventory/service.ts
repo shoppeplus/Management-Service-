@@ -54,15 +54,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
 const isRestockRequest = (value: unknown) =>
   isRecord(value) &&
-  [
-    'id',
-    'number',
-    'warehouseId',
-    'sourceReference',
-    'note',
-    'createdBy',
-    'createdAt',
-  ].every((field) => typeof value[field] === 'string') &&
+  ['id', 'number', 'warehouseId', 'sourceReference', 'note', 'createdBy', 'createdAt'].every(
+    (field) => typeof value[field] === 'string',
+  ) &&
   ['open', 'proposed', 'approved', 'partial', 'received', 'cancelled'].includes(
     String(value.status),
   ) &&

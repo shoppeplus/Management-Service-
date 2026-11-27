@@ -304,9 +304,7 @@ it('offers a prefilled restock request when confirming a sales order fails for i
   expect(await confirmDialog.findByText('Tồn khả dụng không đủ để giữ hàng.')).toBeInTheDocument()
   await user.click(confirmDialog.getByRole('button', { name: 'Tạo yêu cầu nhập hàng' }))
 
-  const requestDialog = within(
-    await screen.findByRole('dialog', { name: 'Tạo yêu cầu nhập hàng' }),
-  )
+  const requestDialog = within(await screen.findByRole('dialog', { name: 'Tạo yêu cầu nhập hàng' }))
   expect(requestDialog.getByRole('combobox', { name: 'Kho cần bổ sung' })).toHaveValue(
     'warehouse-a',
   )

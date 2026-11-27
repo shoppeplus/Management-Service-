@@ -75,9 +75,9 @@ describe('accounting ledger foundation', () => {
       expect.arrayContaining(['A-CASH', 'R-SALES']),
     )
     expect(
-      db.prepare(
-        `SELECT COUNT(*) AS count FROM accounting_accounts WHERE tenant_id='tenant-b'`,
-      ).get().count,
+      db
+        .prepare(`SELECT COUNT(*) AS count FROM accounting_accounts WHERE tenant_id='tenant-b'`)
+        .get().count,
     ).toBe(tenantBAccounts.length)
   })
 

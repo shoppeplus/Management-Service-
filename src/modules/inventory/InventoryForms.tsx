@@ -824,9 +824,7 @@ export function DocumentForm({
   canCreateStandaloneReceipt: boolean
 }) {
   const { t } = useI18n()
-  const [type, setType] = useState<DocumentType>(
-    canCreateStandaloneReceipt ? 'receipt' : 'issue',
-  )
+  const [type, setType] = useState<DocumentType>(canCreateStandaloneReceipt ? 'receipt' : 'issue')
   const [warehouseId, setWarehouseId] = useState(
     data.warehouses.find((warehouse) => warehouse.active)?.id ?? '',
   )

@@ -120,12 +120,7 @@ export interface StockRestockRequestLine {
   requestedQuantity: number
 }
 export type StockRestockRequestStatus =
-  | 'open'
-  | 'proposed'
-  | 'approved'
-  | 'partial'
-  | 'received'
-  | 'cancelled'
+  'open' | 'proposed' | 'approved' | 'partial' | 'received' | 'cancelled'
 export interface StockRestockRequest {
   id: string
   number: string

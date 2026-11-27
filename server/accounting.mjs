@@ -178,7 +178,7 @@ export function createAccounting(db, { now = () => new Date() } = {}) {
         fail(422, 'ACCOUNT_NOT_FOUND', `Không tìm thấy tài khoản ${accountCode} đang hoạt động.`)
       const debit = integer(line.debit, 'Nợ')
       const credit = integer(line.credit, 'Có')
-      if ((debit > 0) === (credit > 0))
+      if (debit > 0 === credit > 0)
         fail(422, 'INVALID_LINE', 'Mỗi dòng chỉ được ghi một bên Nợ hoặc Có.')
       debits += BigInt(debit)
       credits += BigInt(credit)
@@ -265,13 +265,18 @@ export function createAccounting(db, { now = () => new Date() } = {}) {
         line.taxRateBasisPoints,
         line.taxAmount,
       )
-    audit(actor, values.reversalOfId ? 'accounting.journal.reversed' : 'accounting.journal.posted', id, {
-      number,
-      sourceType: values.sourceType,
-      sourceReference: values.sourceReference,
-      reversalOfId: values.reversalOfId,
-      total: values.total,
-    })
+    audit(
+      actor,
+      values.reversalOfId ? 'accounting.journal.reversed' : 'accounting.journal.posted',
+      id,
+      {
+        number,
+        sourceType: values.sourceType,
+        sourceReference: values.sourceReference,
+        reversalOfId: values.reversalOfId,
+        total: values.total,
+      },
+    )
     return getJournal(actor.tenantId, id)
   }
 
@@ -324,9 +329,7 @@ export function createAccounting(db, { now = () => new Date() } = {}) {
       const to = filters.to === undefined ? null : dateValue(filters.to)
       if (from && to && from > to) fail(422, 'INVALID_FILTER', 'Khoảng ngày báo cáo không hợp lệ.')
       const accountCode =
-        filters.accountCode === undefined
-          ? null
-          : text(filters.accountCode, 'Mã tài khoản', 1, 40)
+        filters.accountCode === undefined ? null : text(filters.accountCode, 'Mã tài khoản', 1, 40)
       const limit = filters.limit === undefined ? 100 : integer(filters.limit, 'Giới hạn', 1, 500)
       const offset =
         filters.offset === undefined ? 0 : integer(filters.offset, 'Vị trí bắt đầu', 0, 10000000)
@@ -397,8 +400,7 @@ export function createAccounting(db, { now = () => new Date() } = {}) {
         const closingNet = openingNet + row.periodDebit - row.periodCredit
         return {
           ...row,
-          openingBalance:
-            row.normalBalance === 'debit' ? openingNet : -openingNet,
+          openingBalance: row.normalBalance === 'debit' ? openingNet : -openingNet,
           closingDebit: Math.max(closingNet, 0),
           closingCredit: Math.max(-closingNet, 0),
         }
@@ -422,8 +424,7 @@ export function createAccounting(db, { now = () => new Date() } = {}) {
       const reason = text(input.reason, 'Lý do đảo bút toán', 3, 1000)
       const original = getJournal(current.tenantId, journalId)
       if (!original) fail(404, 'NOT_FOUND', 'Không tìm thấy bút toán.')
-      if (original.reversalOfId)
-        fail(409, 'INVALID_REVERSAL', 'Không thể đảo một bút toán đảo.')
+      if (original.reversalOfId) fail(409, 'INVALID_REVERSAL', 'Không thể đảo một bút toán đảo.')
       if (
         get(
           'SELECT id FROM accounting_journals WHERE tenant_id=? AND reversal_of_id=?',

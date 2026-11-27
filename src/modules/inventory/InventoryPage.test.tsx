@@ -792,7 +792,10 @@ describe('Inventory workspace', () => {
     await user.click(screen.getByRole('button', { name: 'Tạo yêu cầu nhập hàng' }))
     const dialog = within(screen.getByRole('dialog', { name: 'Tạo yêu cầu nhập hàng' }))
     await dialog.findByRole('combobox', { name: 'Kho cần bổ sung' })
-    await user.selectOptions(dialog.getByRole('combobox', { name: 'Kho cần bổ sung' }), 'warehouse-a')
+    await user.selectOptions(
+      dialog.getByRole('combobox', { name: 'Kho cần bổ sung' }),
+      'warehouse-a',
+    )
     await user.selectOptions(dialog.getByRole('combobox', { name: 'Sản phẩm 1' }), 'sku-a')
     await user.clear(dialog.getByRole('spinbutton', { name: 'Tổng số lượng cần có' }))
     await user.type(dialog.getByRole('spinbutton', { name: 'Tổng số lượng cần có' }), '8')
@@ -811,11 +814,7 @@ describe('Inventory workspace', () => {
 
   it('lets a manager create a purchase proposal from a restock request', async () => {
     const data = snapshot()
-    data.permissions.push(
-      'purchaseRequest.read',
-      'purchaseRequest.manage',
-      'purchaseOrder.create',
-    )
+    data.permissions.push('purchaseRequest.read', 'purchaseRequest.manage', 'purchaseOrder.create')
     data.suppliers.push({ id: 'supplier-a', code: 'SUP-1', name: 'Lumi Supply', active: true })
     data.purchaseRequests = [
       {

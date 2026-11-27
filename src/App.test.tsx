@@ -387,9 +387,7 @@ describe('Omnichannel Inbox integration', () => {
     expect(sales.queryByRole('button', { name: 'Request missing stock' })).not.toBeInTheDocument()
     const updatedSales = within(screen.getByRole('dialog', { name: 'Quick order' }))
     await user.click(updatedSales.getByRole('button', { name: 'Fill order from suggestions' }))
-    const orderDialog = within(
-      await screen.findByRole('dialog', { name: 'Create order' }),
-    )
+    const orderDialog = within(await screen.findByRole('dialog', { name: 'Create order' }))
     expect(screen.getAllByRole('dialog')).toHaveLength(1)
     expect(orderDialog.getAllByRole('spinbutton', { name: /Line quantity/ })[0]).toHaveValue(2)
     expect(orderDialog.getByRole('textbox', { name: 'Note' })).toHaveValue(
@@ -400,9 +398,7 @@ describe('Omnichannel Inbox integration', () => {
     )
     await user.click(orderDialog.getByRole('button', { name: 'Save draft order' }))
     await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: 'Create order' }),
-      ).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog', { name: 'Create order' })).not.toBeInTheDocument(),
     )
     expect(inventoryService.command).toHaveBeenCalledWith(
       'salesOrder.create',
@@ -494,7 +490,9 @@ describe('Omnichannel Inbox integration', () => {
 
   it('hides conversation assignment in Inbox and keeps priority and lifecycle actions available', async () => {
     const { user } = await openInbox()
-    expect(workspace().queryByRole('combobox', { name: 'Assign conversation' })).not.toBeInTheDocument()
+    expect(
+      workspace().queryByRole('combobox', { name: 'Assign conversation' }),
+    ).not.toBeInTheDocument()
     expect(workspace().queryByRole('combobox', { name: 'Assign team' })).not.toBeInTheDocument()
     expect(details().queryByRole('combobox', { name: 'Assignee' })).not.toBeInTheDocument()
     expect(details().queryByRole('combobox', { name: 'Team' })).not.toBeInTheDocument()

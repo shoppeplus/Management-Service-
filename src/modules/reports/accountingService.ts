@@ -178,7 +178,11 @@ export function createAccountingService(baseUrl = '') {
     try {
       value = await response.json()
     } catch {
-      throw new AccountingApiError(502, 'INVALID_RESPONSE', 'API kế toán trả về dữ liệu không hợp lệ.')
+      throw new AccountingApiError(
+        502,
+        'INVALID_RESPONSE',
+        'API kế toán trả về dữ liệu không hợp lệ.',
+      )
     }
     if (!response.ok) {
       if (response.status === 401) notifyAuthenticationExpired()

@@ -63,10 +63,12 @@ const researchFailureMessage = (code: string | null, t: (vi: string, en: string)
     ],
   }
   const message = code ? messages[code] : undefined
-  return message ? t(message[0], message[1]) : t(
-    'Lần nghiên cứu này không hoàn tất. Hãy kiểm tra cấu hình và thử lại.',
-    'This research run did not complete. Check configuration and try again.',
-  )
+  return message
+    ? t(message[0], message[1])
+    : t(
+        'Lần nghiên cứu này không hoàn tất. Hãy kiểm tra cấu hình và thử lại.',
+        'This research run did not complete. Check configuration and try again.',
+      )
 }
 
 export default function MarketIntelligencePage() {
@@ -233,9 +235,7 @@ export default function MarketIntelligencePage() {
               </div>
               <div className="market-provider-list">
                 <div>
-                  <strong>
-                    {t('Tìm kiếm web & phân tích', 'Web search & analysis')}
-                  </strong>
+                  <strong>{t('Tìm kiếm web & phân tích', 'Web search & analysis')}</strong>
                   <small>
                     {status.provider.name} · {status.provider.model}
                   </small>
@@ -320,7 +320,10 @@ export default function MarketIntelligencePage() {
                     <Sparkles size={16} aria-hidden="true" />
                   )}
                   {running
-                    ? t('Gemini đang tìm trên web và phân tích…', 'Gemini is searching the web and analyzing…')
+                    ? t(
+                        'Gemini đang tìm trên web và phân tích…',
+                        'Gemini is searching the web and analyzing…',
+                      )
                     : t('Phân tích thị trường', 'Analyze market')}
                 </button>
               </form>

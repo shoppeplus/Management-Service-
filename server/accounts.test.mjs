@@ -281,11 +281,7 @@ describe('Global business accounts and tenant permissions', () => {
     })
     const snapshot = await request('/inventory/snapshot', { cookie: signedIn.cookie })
     expect(snapshot.body.permissions).toEqual(
-      expect.arrayContaining([
-        'sku.create',
-        'sku.update',
-        'document.transfer_receive',
-      ]),
+      expect.arrayContaining(['sku.create', 'sku.update', 'document.transfer_receive']),
     )
     expect(snapshot.body.permissions).not.toContain('document.create')
     expect(snapshot.body.permissions).not.toContain('document.approve')

@@ -60,9 +60,7 @@ describe('market intelligence page', () => {
     await user.click(screen.getByRole('button', { name: 'Phân tích thị trường' }))
 
     const summary = await screen.findByRole('region', { name: 'Phân tích tóm tắt' })
-    expect(
-      within(summary).getByText(/Nhu cầu tiết kiệm năng lượng đang tăng/),
-    ).toBeInTheDocument()
+    expect(within(summary).getByText(/Nhu cầu tiết kiệm năng lượng đang tăng/)).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Nhà thông minh · Việt Nam' })).toHaveFocus()
     expect(screen.queryByText('Nguồn tham khảo')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /example/i })).not.toBeInTheDocument()

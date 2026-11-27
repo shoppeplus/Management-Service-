@@ -1159,10 +1159,7 @@ test('restock requests flow from staff through manager proposal and accountant a
     manager,
   )
   const orderId = proposal.result.id
-  assert.equal(
-    proposal.purchaseRequests.find((item) => item.id === requestId).status,
-    'proposed',
-  )
+  assert.equal(proposal.purchaseRequests.find((item) => item.id === requestId).status, 'proposed')
   assert.equal(
     f.inventory.snapshot(staff).purchaseRequests.find((item) => item.id === requestId).status,
     'proposed',
@@ -1171,12 +1168,7 @@ test('restock requests flow from staff through manager proposal and accountant a
     () => f.command('purchaseOrder.approve', { id: orderId }, randomUUID(), manager),
     errorCode('FORBIDDEN'),
   )
-  const approved = f.command(
-    'purchaseOrder.approve',
-    { id: orderId },
-    randomUUID(),
-    accountant,
-  )
+  const approved = f.command('purchaseOrder.approve', { id: orderId }, randomUUID(), accountant)
   assert.equal(approved.purchaseOrders.find((item) => item.id === orderId).status, 'approved')
   assert.equal(approved.purchaseRequests.length, 0)
   assert.equal(
@@ -1197,22 +1189,13 @@ test('restock requests flow from staff through manager proposal and accountant a
   assert.equal(receipt.metrics.onHand, 0)
   const receiptApprover = { tenantId: 'tenant-a', userId: 'tenant-a-approver', role: 'approver' }
   assert.throws(
-    () =>
-      f.command(
-        'document.approve',
-        { id: receipt.result.id },
-        randomUUID(),
-        receiptApprover,
-      ),
+    () => f.command('document.approve', { id: receipt.result.id }, randomUUID(), receiptApprover),
     errorCode('FORBIDDEN'),
   )
   f.command('document.approve', { id: receipt.result.id }, randomUUID(), manager)
   const posted = f.command('document.post', { id: receipt.result.id }, randomUUID(), manager)
   assert.equal(posted.metrics.onHand, 4)
-  assert.equal(
-    posted.purchaseRequests.find((item) => item.id === requestId).status,
-    'received',
-  )
+  assert.equal(posted.purchaseRequests.find((item) => item.id === requestId).status, 'received')
 })
 
 test('concurrent PO receipt posts serialize without over-receiving ordered quantity', async (t) => {

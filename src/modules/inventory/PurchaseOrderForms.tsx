@@ -3,11 +3,7 @@ import type { FormEvent } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Modal } from '../../components/shared'
 import { useI18n } from '../../i18n'
-import type {
-  InventorySnapshot,
-  PurchaseOrder,
-  StockRestockRequest,
-} from './types'
+import type { InventorySnapshot, PurchaseOrder, StockRestockRequest } from './types'
 import type { RunCommand } from './InventoryForms'
 
 interface PurchaseOrderLineInput {
@@ -163,7 +159,11 @@ export function RestockRequestCreateForm({
           </label>
           <label>
             <span>{t('Ghi chú', 'Note')}</span>
-            <input value={note} maxLength={1000} onChange={(event) => setNote(event.target.value)} />
+            <input
+              value={note}
+              maxLength={1000}
+              onChange={(event) => setNote(event.target.value)}
+            />
           </label>
         </fieldset>
         {lines.map((line, index) => (
@@ -173,7 +173,9 @@ export function RestockRequestCreateForm({
             </legend>
             <div className="inv-form-grid">
               <label>
-                <span>{t('Sản phẩm', 'Product')} {index + 1}</span>
+                <span>
+                  {t('Sản phẩm', 'Product')} {index + 1}
+                </span>
                 <select
                   required
                   value={line.skuId}
@@ -213,7 +215,9 @@ export function RestockRequestCreateForm({
               <button
                 type="button"
                 className="button button-secondary"
-                onClick={() => setLines((current) => current.filter((item) => item.key !== line.key))}
+                onClick={() =>
+                  setLines((current) => current.filter((item) => item.key !== line.key))
+                }
               >
                 <Trash2 size={14} />
                 {t('Xóa dòng', 'Remove line')}

@@ -130,8 +130,9 @@ export default function InventoryPage({ catalogOnly = false }: { catalogOnly?: b
   const [configOpen, setConfigOpen] = useState(false)
   const [purchaseOrderCreateOpen, setPurchaseOrderCreateOpen] = useState(false)
   const [restockRequestCreateOpen, setRestockRequestCreateOpen] = useState(false)
-  const [restockRequestForOrder, setRestockRequestForOrder] =
-    useState<StockRestockRequest | null>(null)
+  const [restockRequestForOrder, setRestockRequestForOrder] = useState<StockRestockRequest | null>(
+    null,
+  )
   const [purchaseOrderReceive, setPurchaseOrderReceive] = useState<PurchaseOrder | null>(null)
   const [productImportOpen, setProductImportOpen] = useState(false)
   const [ledgerLoading, setLedgerLoading] = useState(false)
@@ -365,46 +366,61 @@ export default function InventoryPage({ catalogOnly = false }: { catalogOnly?: b
     (sku) => sku.active && (availableBySku.get(sku.id) ?? 0) <= sku.reorderPoint,
   )
   const can = (action: string) => Boolean(data?.permissions.includes(action))
-  const inventoryTabs = ([
-    ['stock', t('Tồn kho', 'Stock'), []],
+  const inventoryTabs = (
     [
-      'documents',
-      t('Chứng từ', 'Documents'),
-      ['document.create', 'document.approve', 'document.post', 'document.cancel', 'document.transfer_receive'],
-    ],
-    [
-      'purchaseOrders',
-      t('Đơn mua hàng', 'Purchase orders'),
+      ['stock', t('Tồn kho', 'Stock'), []],
       [
-        'purchaseRequest.create',
-        'purchaseRequest.read',
-        'purchaseRequest.manage',
-        'purchaseOrder.create',
-        'purchaseOrder.approve',
-        'purchaseOrder.cancel',
-        'purchaseOrder.receive',
+        'documents',
+        t('Chứng từ', 'Documents'),
+        [
+          'document.create',
+          'document.approve',
+          'document.post',
+          'document.cancel',
+          'document.transfer_receive',
+        ],
       ],
-    ],
-    [
-      'warehouses',
-      t('Kho & danh mục', 'Warehouses & setup'),
-      ['warehouse.create', 'warehouse.update', 'location.create', 'supplier.create', 'supplier.update', 'sku.create', 'sku.update', 'sku.import'],
-    ],
-    ['reservations', t('Giữ chỗ', 'Reservations'), ['reservation.create', 'reservation.release']],
-    ['counts', t('Kiểm kê', 'Counts'), ['count.create', 'count.record', 'count.approve']],
-    [
-      'serials',
-      t('Serial & bảo hành', 'Serials & warranty'),
-      ['warranty.create', 'warranty.transition', 'quality.reclassify'],
-    ],
-    [
-      'history',
-      t('Sổ kho & nhật ký', 'Ledger & audit'),
-      ['document.approve', 'document.post', 'count.approve', 'config.update'],
-    ],
-  ] as [Tab, string, string[]][]).filter(([key, , permissions]) =>
-    key === 'stock' || permissions.some(can),
-  )
+      [
+        'purchaseOrders',
+        t('Đơn mua hàng', 'Purchase orders'),
+        [
+          'purchaseRequest.create',
+          'purchaseRequest.read',
+          'purchaseRequest.manage',
+          'purchaseOrder.create',
+          'purchaseOrder.approve',
+          'purchaseOrder.cancel',
+          'purchaseOrder.receive',
+        ],
+      ],
+      [
+        'warehouses',
+        t('Kho & danh mục', 'Warehouses & setup'),
+        [
+          'warehouse.create',
+          'warehouse.update',
+          'location.create',
+          'supplier.create',
+          'supplier.update',
+          'sku.create',
+          'sku.update',
+          'sku.import',
+        ],
+      ],
+      ['reservations', t('Giữ chỗ', 'Reservations'), ['reservation.create', 'reservation.release']],
+      ['counts', t('Kiểm kê', 'Counts'), ['count.create', 'count.record', 'count.approve']],
+      [
+        'serials',
+        t('Serial & bảo hành', 'Serials & warranty'),
+        ['warranty.create', 'warranty.transition', 'quality.reclassify'],
+      ],
+      [
+        'history',
+        t('Sổ kho & nhật ký', 'Ledger & audit'),
+        ['document.approve', 'document.post', 'count.approve', 'config.update'],
+      ],
+    ] as [Tab, string, string[]][]
+  ).filter(([key, , permissions]) => key === 'stock' || permissions.some(can))
   const inventoryEnabled = data?.tenant.config.inventoryEnabled !== false
   const warehouseName = (id: string | null) =>
     data?.warehouses.find((warehouse) => warehouse.id === id)?.name ?? '—'
@@ -1118,7 +1134,9 @@ export default function InventoryPage({ catalogOnly = false }: { catalogOnly?: b
                             <td>
                               <strong>{request.number}</strong>
                               <small>
-                                {request.sourceReference || request.note || t('Không có tham chiếu', 'No reference')}
+                                {request.sourceReference ||
+                                  request.note ||
+                                  t('Không có tham chiếu', 'No reference')}
                               </small>
                               <small>{dateTime(request.createdAt, locale)}</small>
                             </td>

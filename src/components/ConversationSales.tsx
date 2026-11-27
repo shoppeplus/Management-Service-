@@ -16,6 +16,7 @@ import type { InventorySnapshot } from '../modules/inventory/types'
 import type { SalesOrderSeedLine } from '../modules/inventory/SalesOrderPanel'
 import { SalesOrderCreateForm } from '../modules/inventory/SalesOrderPanel'
 import { inventoryService, InventoryApiError } from '../modules/inventory/service'
+import { APP_MODE } from '../services/inboxService'
 import { createDemoInventorySnapshot } from '../lib/productCategories'
 import { analyzePurchaseDemo, conversationRevision } from '../lib/purchase'
 import { useI18n } from '../i18n'
@@ -79,7 +80,7 @@ export default function ConversationSales({ conversation, customer, onNotify, on
       if (mounted.current) setData(next)
     } catch (cause) {
       if (!mounted.current) return
-      if (!isTestEnv) {
+      if (!isTestEnv && APP_MODE === 'demo') {
         setData(createDemoInventorySnapshot())
       } else if (cause instanceof InventoryApiError && cause.status === 401) {
         navigate('/login', { replace: true, state: { from: '/inbox' } })
@@ -145,7 +146,7 @@ export default function ConversationSales({ conversation, customer, onNotify, on
       return next
     } catch (cause) {
       const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
-      if (!isTestEnv && data && action === 'salesOrder.create') {
+      if (!isTestEnv && APP_MODE === 'demo' && data && action === 'salesOrder.create') {
         const nowIso = new Date().toISOString()
         const rawLines = Array.isArray(input.lines)
           ? (input.lines as { skuId: string; quantity: number; locationId?: string }[])

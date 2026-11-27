@@ -61,7 +61,7 @@ Balance ghi nhận onHand, reserved, damaged, warranty, available (`onHand-reser
 | reservation.create                            | warehouseId, locationId?, skuId, quantity, reference                                                                          |
 | reservation.release                           | id                                                                                                                            |
 | purchaseRequest.create                        | warehouseId, sourceReference?, note?, lines: `{skuId,requestedQuantity}`                                                      |
-| purchaseOrder.create                          | warehouseId, supplierId, reference?, note?, lines: `{skuId,quantity,unitCost,locationId?}`, restockRequestId?                  |
+| purchaseOrder.create                          | warehouseId, supplierId, reference?, note?, lines: `{skuId,quantity,unitCost,locationId?}`, restockRequestId?                 |
 | purchaseOrder.approve/cancel                  | id; chỉ accountant mặc định được approve                                                                                      |
 | purchaseOrder.receive                         | id, lines: `{purchaseOrderLineId,quantity,serialNumbers?}`; manager chỉ nhận đơn đã duyệt                                     |
 | count.create                                  | warehouseId, name                                                                                                             |

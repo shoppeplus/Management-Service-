@@ -168,9 +168,7 @@ describe('Accountant workspace', () => {
 
     await user.click(screen.getByRole('button', { name: 'Approve order' }))
     expect(inventoryService.command).toHaveBeenCalledWith('purchaseOrder.approve', { id: 'po-1' })
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'Order PO-2026-001 approved.',
-    )
+    expect(await screen.findByRole('status')).toHaveTextContent('Order PO-2026-001 approved.')
     expect(screen.getByText('No purchase orders need review')).toBeInTheDocument()
   })
 

@@ -21,9 +21,9 @@ describe('role-based module access', () => {
 
     expect(canAccessModule('Admin', manager)).toBe(false)
     expect(canAccessModule('Admin', administrator)).toBe(true)
-    expect(
-      canAccessModule('Admin', { ...administrator, permissions: ['operations.read'] }),
-    ).toBe(false)
+    expect(canAccessModule('Admin', { ...administrator, permissions: ['operations.read'] })).toBe(
+      false,
+    )
     expect(getDefaultRoute(administrator)).toBe('/dashboard')
   })
 

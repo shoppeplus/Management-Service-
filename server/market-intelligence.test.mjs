@@ -9,7 +9,8 @@ const topic = {
   market: 'Việt Nam',
   question: 'Phân tích xu hướng và đối thủ',
 }
-const summary = '- Nhu cầu thiết bị tiết kiệm năng lượng đang được quan tâm.\n- Cần kiểm chứng quy mô trước khi mở rộng danh mục.'
+const summary =
+  '- Nhu cầu thiết bị tiết kiệm năng lượng đang được quan tâm.\n- Cần kiểm chứng quy mô trước khi mở rộng danh mục.'
 const groundingMetadata = {
   groundingChunks: [
     { web: { title: 'Xu hướng nhà thông minh', uri: 'https://example.com/smart-home' } },
@@ -93,8 +94,9 @@ describe('market intelligence service', () => {
     expect(requestBody.generationConfig.maxOutputTokens).toBeLessThanOrEqual(700)
     expect(requestBody.contents[0].parts[0].text).toContain('Không tạo danh sách bài viết')
     const [saved] = service.listRuns(admin).runs
-    expect(JSON.parse(db.prepare('SELECT sources_json FROM market_research_runs').get().sources_json))
-      .toMatchObject([{ url: 'https://example.com/smart-home' }])
+    expect(
+      JSON.parse(db.prepare('SELECT sources_json FROM market_research_runs').get().sources_json),
+    ).toMatchObject([{ url: 'https://example.com/smart-home' }])
     expect(
       JSON.stringify({ result, status: service.status(admin), runs: service.listRuns(admin) }),
     ).not.toContain('server-only-ai-key')

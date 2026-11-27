@@ -94,12 +94,7 @@ const normalizeSources = (results) => {
 }
 
 const normalizeSummary = (value) => {
-  if (
-    typeof value !== 'string' ||
-    !value.trim() ||
-    value.length > 2400 ||
-    hasControls(value)
-  )
+  if (typeof value !== 'string' || !value.trim() || value.length > 2400 || hasControls(value))
     fail(502, 'MARKET_ANALYSIS_INVALID', 'AI trả về nội dung phân tích không hợp lệ.')
   return value.trim()
 }

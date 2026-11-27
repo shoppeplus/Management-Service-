@@ -1,7 +1,9 @@
 import { normalizeSearch } from '../modules/operations/domain'
 import type { QuotationInput, QuotationTotals } from '../types/quotation'
 
-export function filterQuotationProducts<T extends { name: string; sku: string; description?: string; category?: string }>(products: T[], search: string, category = 'all') {
+export function filterQuotationProducts<
+  T extends { name: string; sku: string; description?: string; category?: string },
+>(products: T[], search: string, category = 'all') {
   const query = normalizeSearch(search.trim())
   return products.filter(
     (product) =>

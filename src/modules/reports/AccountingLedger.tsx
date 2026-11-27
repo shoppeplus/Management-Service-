@@ -3,10 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useI18n } from '../../i18n'
 import { useAppAccess } from '../operations/access'
-import {
-  accountingService,
-  AccountingApiError,
-} from './accountingService'
+import { accountingService, AccountingApiError } from './accountingService'
 import type {
   AccountingAccount,
   AccountingJournal,
@@ -22,7 +19,12 @@ const today = () => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 const monthStart = () => `${today().slice(0, 7)}-01`
-const emptyLine = (): JournalLineInput => ({ accountCode: '', debit: '', credit: '', description: '' })
+const emptyLine = (): JournalLineInput => ({
+  accountCode: '',
+  debit: '',
+  credit: '',
+  description: '',
+})
 const money = (value: number, locale: string) =>
   new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-GB', {
     maximumFractionDigits: 0,
@@ -102,10 +104,7 @@ export default function AccountingLedger({
     void load()
   }, [load])
 
-  const currency = useMemo(
-    () => (value: number) => `${money(value, locale)} ₫`,
-    [locale],
-  )
+  const currency = useMemo(() => (value: number) => `${money(value, locale)} ₫`, [locale])
 
   const loadMore = async () => {
     if (nextOffset === null || loadingMore) return
@@ -138,7 +137,16 @@ export default function AccountingLedger({
   const exportCurrent = async () => {
     if (tab === 'trial' && trial) {
       exportCsv('bang-can-doi-thu.csv', [
-        ['Mã tài khoản', 'Tên tài khoản', 'Loại', 'Số dư đầu kỳ', 'Phát sinh Nợ', 'Phát sinh Có', 'Dư Nợ cuối kỳ', 'Dư Có cuối kỳ'],
+        [
+          'Mã tài khoản',
+          'Tên tài khoản',
+          'Loại',
+          'Số dư đầu kỳ',
+          'Phát sinh Nợ',
+          'Phát sinh Có',
+          'Dư Nợ cuối kỳ',
+          'Dư Có cuối kỳ',
+        ],
         ...trial.accounts.map((row) => [
           row.code,
           row.name,
@@ -162,7 +170,17 @@ export default function AccountingLedger({
           offset = page.nextOffset
         }
         exportCsv('so-nhat-ky.csv', [
-          ['Số chứng từ', 'Ngày', 'Diễn giải', 'Loại nguồn', 'Mã nguồn', 'Tài khoản', 'Tên tài khoản', 'Nợ', 'Có'],
+          [
+            'Số chứng từ',
+            'Ngày',
+            'Diễn giải',
+            'Loại nguồn',
+            'Mã nguồn',
+            'Tài khoản',
+            'Tên tài khoản',
+            'Nợ',
+            'Có',
+          ],
           ...allJournals.flatMap((journal) =>
             journal.lines.map((line) => [
               journal.number,
@@ -262,7 +280,9 @@ export default function AccountingLedger({
     <section className="accounting-ledger" aria-label={t('Sổ kế toán', 'Accounting ledger')}>
       <header className="accounting-heading">
         <div>
-          <span className="accounting-eyebrow">{t('NỀN TẢNG KẾ TOÁN', 'ACCOUNTING FOUNDATION')}</span>
+          <span className="accounting-eyebrow">
+            {t('NỀN TẢNG KẾ TOÁN', 'ACCOUNTING FOUNDATION')}
+          </span>
           <h1>{t('Sổ kế toán nội bộ', 'Internal accounting ledger')}</h1>
           <p>
             {t(
@@ -272,7 +292,10 @@ export default function AccountingLedger({
           </p>
         </div>
         <details className="accounting-actions-menu">
-          <summary aria-label={t('Tác vụ khác', 'More actions')} title={t('Tác vụ khác', 'More actions')}>
+          <summary
+            aria-label={t('Tác vụ khác', 'More actions')}
+            title={t('Tác vụ khác', 'More actions')}
+          >
             <MoreHorizontal size={19} />
           </summary>
           <div className="accounting-actions-popover">
@@ -305,11 +328,21 @@ export default function AccountingLedger({
       <div className="accounting-filters">
         <label>
           {t('Từ ngày', 'From')}
-          <input type="date" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
+          <input
+            type="date"
+            value={from}
+            max={to}
+            onChange={(event) => setFrom(event.target.value)}
+          />
         </label>
         <label>
           {t('Đến ngày', 'To')}
-          <input type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+          <input
+            type="date"
+            value={to}
+            min={from}
+            onChange={(event) => setTo(event.target.value)}
+          />
         </label>
         <span>{t('Đơn vị tiền tệ: VND', 'Currency: VND')}</span>
       </div>
@@ -322,8 +355,7 @@ export default function AccountingLedger({
             value={tab}
             onChange={(event) => {
               const value = event.currentTarget.value
-              if (value === 'trial' || value === 'journals' || value === 'accounts')
-                setTab(value)
+              if (value === 'trial' || value === 'journals' || value === 'accounts') setTab(value)
             }}
           >
             <option value="trial">{t('Bảng cân đối thử', 'Trial balance')}</option>
@@ -333,9 +365,19 @@ export default function AccountingLedger({
         </label>
       )}
 
-      {error && <div className="accounting-alert" role="alert">{error}</div>}
-      {notice && <div className="accounting-notice" role="status">{notice}</div>}
-      {loading && <p className="accounting-empty">{t('Đang tải sổ kế toán…', 'Loading ledger…')}</p>}
+      {error && (
+        <div className="accounting-alert" role="alert">
+          {error}
+        </div>
+      )}
+      {notice && (
+        <div className="accounting-notice" role="status">
+          {notice}
+        </div>
+      )}
+      {loading && (
+        <p className="accounting-empty">{t('Đang tải sổ kế toán…', 'Loading ledger…')}</p>
+      )}
 
       {!loading && !error && tab === 'trial' && trial && (
         <div className="accounting-table-wrap">
@@ -353,7 +395,10 @@ export default function AccountingLedger({
             <tbody>
               {trial.accounts.map((row) => (
                 <tr key={row.code}>
-                  <td><strong>{row.code}</strong><span>{row.name}</span></td>
+                  <td>
+                    <strong>{row.code}</strong>
+                    <span>{row.name}</span>
+                  </td>
                   <td>{currency(row.openingBalance)}</td>
                   <td>{currency(row.periodDebit)}</td>
                   <td>{currency(row.periodCredit)}</td>
@@ -379,14 +424,18 @@ export default function AccountingLedger({
       {!loading && !error && tab === 'journals' && (
         <div className="accounting-journal-list">
           {journals.length === 0 && (
-            <p className="accounting-empty">{t('Chưa có chứng từ ghi sổ trong kỳ này.', 'No posted entries in this period.')}</p>
+            <p className="accounting-empty">
+              {t('Chưa có chứng từ ghi sổ trong kỳ này.', 'No posted entries in this period.')}
+            </p>
           )}
           {journals.map((journal) => (
             <article className="accounting-journal" key={journal.id}>
               <div className="accounting-journal-heading">
                 <div>
                   <strong>{journal.number}</strong>
-                  <span>{journal.entryDate} · {journal.memo}</span>
+                  <span>
+                    {journal.entryDate} · {journal.memo}
+                  </span>
                 </div>
                 {canPost && !journal.reversalOfId && (
                   <details className="accounting-entry-menu">
@@ -425,7 +474,10 @@ export default function AccountingLedger({
                   <tbody>
                     {journal.lines.map((line) => (
                       <tr key={`${journal.id}-${line.lineNumber}`}>
-                        <td><strong>{line.accountCode}</strong><span>{line.accountName}</span></td>
+                        <td>
+                          <strong>{line.accountCode}</strong>
+                          <span>{line.accountName}</span>
+                        </td>
                         <td>{line.description || '—'}</td>
                         <td>{currency(line.debit)}</td>
                         <td>{currency(line.credit)}</td>
@@ -435,16 +487,32 @@ export default function AccountingLedger({
                 </table>
               </div>
               {reversingId === journal.id && (
-                <form className="accounting-reversal-form" onSubmit={(event) => void submitReversal(event, journal)}>
+                <form
+                  className="accounting-reversal-form"
+                  onSubmit={(event) => void submitReversal(event, journal)}
+                >
                   <label>
                     {t('Ngày đảo', 'Reversal date')}
-                    <input type="date" required value={reverseDate} onChange={(event) => setReverseDate(event.target.value)} />
+                    <input
+                      type="date"
+                      required
+                      value={reverseDate}
+                      onChange={(event) => setReverseDate(event.target.value)}
+                    />
                   </label>
                   <label>
                     {t('Lý do', 'Reason')}
-                    <input required minLength={3} maxLength={1000} value={reverseReason} onChange={(event) => setReverseReason(event.target.value)} />
+                    <input
+                      required
+                      minLength={3}
+                      maxLength={1000}
+                      value={reverseReason}
+                      onChange={(event) => setReverseReason(event.target.value)}
+                    />
                   </label>
-                  <button type="submit" disabled={saving}>{t('Xác nhận đảo', 'Confirm reversal')}</button>
+                  <button type="submit" disabled={saving}>
+                    {t('Xác nhận đảo', 'Confirm reversal')}
+                  </button>
                 </form>
               )}
             </article>
@@ -471,7 +539,10 @@ export default function AccountingLedger({
               <strong>{account.code}</strong>
               <span>{account.name}</span>
               <small>
-                {account.category} · {account.normalBalance === 'debit' ? t('Dư Nợ', 'Debit balance') : t('Dư Có', 'Credit balance')}
+                {account.category} ·{' '}
+                {account.normalBalance === 'debit'
+                  ? t('Dư Nợ', 'Debit balance')
+                  : t('Dư Có', 'Credit balance')}
               </small>
             </article>
           ))}
@@ -480,16 +551,30 @@ export default function AccountingLedger({
 
       {canPost && tab === 'journals' && (
         <details className="accounting-entry-panel">
-          <summary><Plus size={16} />{t('Lập bút toán thủ công', 'Create manual journal entry')}</summary>
+          <summary>
+            <Plus size={16} />
+            {t('Lập bút toán thủ công', 'Create manual journal entry')}
+          </summary>
           <form onSubmit={(event) => void submitJournal(event)}>
             <div className="accounting-entry-fields">
               <label>
                 {t('Ngày hạch toán', 'Entry date')}
-                <input required type="date" value={entryDate} onChange={(event) => setEntryDate(event.target.value)} />
+                <input
+                  required
+                  type="date"
+                  value={entryDate}
+                  onChange={(event) => setEntryDate(event.target.value)}
+                />
               </label>
               <label>
                 {t('Diễn giải chứng từ', 'Journal memo')}
-                <input required minLength={1} maxLength={1000} value={memo} onChange={(event) => setMemo(event.target.value)} />
+                <input
+                  required
+                  minLength={1}
+                  maxLength={1000}
+                  value={memo}
+                  onChange={(event) => setMemo(event.target.value)}
+                />
               </label>
             </div>
             <div className="accounting-entry-lines">
@@ -503,31 +588,77 @@ export default function AccountingLedger({
                       onChange={(event) =>
                         setLines((current) =>
                           current.map((item, lineIndex) =>
-                            lineIndex === index ? { ...item, accountCode: event.target.value } : item,
+                            lineIndex === index
+                              ? { ...item, accountCode: event.target.value }
+                              : item,
                           ),
                         )
                       }
                     >
                       <option value="">{t('Chọn tài khoản', 'Select account')}</option>
                       {accounts.map((account) => (
-                        <option key={account.code} value={account.code}>{account.code} — {account.name}</option>
+                        <option key={account.code} value={account.code}>
+                          {account.code} — {account.name}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <label>
                     {t('Nợ (VND)', 'Debit (VND)')}
-                    <input type="number" min="0" step="1" value={line.debit} onChange={(event) => setLines((current) => current.map((item, lineIndex) => lineIndex === index ? { ...item, debit: event.target.value } : item))} />
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={line.debit}
+                      onChange={(event) =>
+                        setLines((current) =>
+                          current.map((item, lineIndex) =>
+                            lineIndex === index ? { ...item, debit: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
                   </label>
                   <label>
                     {t('Có (VND)', 'Credit (VND)')}
-                    <input type="number" min="0" step="1" value={line.credit} onChange={(event) => setLines((current) => current.map((item, lineIndex) => lineIndex === index ? { ...item, credit: event.target.value } : item))} />
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={line.credit}
+                      onChange={(event) =>
+                        setLines((current) =>
+                          current.map((item, lineIndex) =>
+                            lineIndex === index ? { ...item, credit: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
                   </label>
                   <label>
                     {t('Diễn giải dòng', 'Line description')}
-                    <input maxLength={500} value={line.description} onChange={(event) => setLines((current) => current.map((item, lineIndex) => lineIndex === index ? { ...item, description: event.target.value } : item))} />
+                    <input
+                      maxLength={500}
+                      value={line.description}
+                      onChange={(event) =>
+                        setLines((current) =>
+                          current.map((item, lineIndex) =>
+                            lineIndex === index
+                              ? { ...item, description: event.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
                   </label>
                   {lines.length > 2 && (
-                    <button className="accounting-remove-line" type="button" onClick={() => setLines((current) => current.filter((_, lineIndex) => lineIndex !== index))}>
+                    <button
+                      className="accounting-remove-line"
+                      type="button"
+                      onClick={() =>
+                        setLines((current) => current.filter((_, lineIndex) => lineIndex !== index))
+                      }
+                    >
                       {t('Xóa dòng', 'Remove line')}
                     </button>
                   )}
@@ -535,11 +666,18 @@ export default function AccountingLedger({
               ))}
             </div>
             <div className="accounting-entry-footer">
-              <button type="button" className="accounting-secondary-button" onClick={() => setLines((current) => [...current, emptyLine()])}>
-                <Plus size={14} />{t('Thêm dòng', 'Add line')}
+              <button
+                type="button"
+                className="accounting-secondary-button"
+                onClick={() => setLines((current) => [...current, emptyLine()])}
+              >
+                <Plus size={14} />
+                {t('Thêm dòng', 'Add line')}
               </button>
               <button type="submit" disabled={saving || loading}>
-                {saving ? t('Đang ghi sổ…', 'Posting…') : t('Ghi sổ bút toán', 'Post journal entry')}
+                {saving
+                  ? t('Đang ghi sổ…', 'Posting…')
+                  : t('Ghi sổ bút toán', 'Post journal entry')}
               </button>
             </div>
           </form>

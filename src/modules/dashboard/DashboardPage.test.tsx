@@ -68,16 +68,15 @@ function open(path = '/dashboard', width = 1440) {
 
 describe('Business overview integration', () => {
   const mainNavigation = () =>
-    within(
-      screen.getByRole('navigation', { name: /Main navigation|Điều hướng chính/ }),
-    )
+    within(screen.getByRole('navigation', { name: /Main navigation|Điều hướng chính/ }))
 
   it.each(['/', '/unknown-page'])('opens the overview as the landing page for %s', async (path) => {
     open(path)
     await screen.findByRole('main', { name: 'Business overview' })
-    expect(
-      mainNavigation().getByRole('link', { name: /Dashboard|Tổng quan/ }),
-    ).toHaveAttribute('aria-current', 'page')
+    expect(mainNavigation().getByRole('link', { name: /Dashboard|Tổng quan/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
   })
 
   it('shows an initial load failure and retries the same service instead of inserting fallback data', async () => {
@@ -107,9 +106,10 @@ describe('Business overview integration', () => {
     await user.click(screen.getByRole('button', { name: 'Tiếng Việt' }))
     await screen.findByRole('main', { name: 'Tổng quan kinh doanh' })
     expect(screen.getByRole('heading', { name: /^Tổng quan/, level: 1 })).toBeInTheDocument()
-    expect(
-      mainNavigation().getByRole('link', { name: /Tổng quan|Dashboard/ }),
-    ).toHaveAttribute('aria-current', 'page')
+    expect(mainNavigation().getByRole('link', { name: /Tổng quan|Dashboard/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
     expect(document.title).toBe('Tổng quan · SmartSales Suite')
   })
 
@@ -158,9 +158,10 @@ describe('Business overview integration', () => {
     link.focus()
     await user.keyboard('{Enter}')
     await screen.findByRole('main', { name: 'Business overview' })
-    expect(
-      mainNavigation().getByRole('link', { name: /Dashboard|Tổng quan/ }),
-    ).toHaveAttribute('aria-current', 'page')
+    expect(mainNavigation().getByRole('link', { name: /Dashboard|Tổng quan/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
   })
 
   it('opens the exact order selected from the recent-order list', async () => {

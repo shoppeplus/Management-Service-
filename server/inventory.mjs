@@ -906,21 +906,14 @@ export function createInventory(db) {
             actor.userId,
           ).map(record)
         : []
-    const requestLines = rows(
-      'stock_restock_request_lines',
-      'ORDER BY request_id,line_number',
-    )
+    const requestLines = rows('stock_restock_request_lines', 'ORDER BY request_id,line_number')
     const purchaseRequests = requestRows.map((request) => {
       const order = get(
         "SELECT id,number,status FROM purchase_orders WHERE tenant_id=? AND restock_request_id=? AND status!='cancelled' ORDER BY created_at DESC,id DESC LIMIT 1",
         actor.tenantId,
         request.id,
       )
-      const status = order
-        ? order.status === 'draft'
-          ? 'proposed'
-          : order.status
-        : request.status
+      const status = order ? (order.status === 'draft' ? 'proposed' : order.status) : request.status
       return {
         ...request,
         status,
@@ -1060,9 +1053,12 @@ export function createInventory(db) {
       documents,
       purchaseRequests,
       purchaseOrders: actorPermissions.some((permission) =>
-        ['purchaseOrder.create', 'purchaseOrder.approve', 'purchaseOrder.cancel', 'purchaseOrder.receive'].includes(
-          permission,
-        ),
+        [
+          'purchaseOrder.create',
+          'purchaseOrder.approve',
+          'purchaseOrder.cancel',
+          'purchaseOrder.receive',
+        ].includes(permission),
       )
         ? purchaseOrders
         : [],
@@ -1388,14 +1384,7 @@ export function createInventory(db) {
       return { id: requestId, number }
     }
     if (action === 'purchaseOrder.create') {
-      keys(input, [
-        'warehouseId',
-        'supplierId',
-        'reference',
-        'note',
-        'lines',
-        'restockRequestId',
-      ])
+      keys(input, ['warehouseId', 'supplierId', 'reference', 'note', 'lines', 'restockRequestId'])
       warehouse(actor, input.warehouseId)
       const supplier = requireRecord('suppliers', tenantId, input.supplierId, 'Nhà cung cấp')
       if (!supplier.active) fail('SUPPLIER_INACTIVE', 'Nhà cung cấp đã ngừng hoạt động.')
@@ -2356,7 +2345,8 @@ export function createInventory(db) {
 
   const executeInTransaction = (actor, action, input) => {
     const authorized = authorize(actor, action)
-    if (!ALL_PERMISSIONS.includes(action)) fail('UNKNOWN_ACTION', 'Thao tác không được hỗ trợ.', 404)
+    if (!ALL_PERMISSIONS.includes(action))
+      fail('UNKNOWN_ACTION', 'Thao tác không được hỗ trợ.', 404)
     if (!object(input)) fail('INVALID_INPUT', 'Thông tin yêu cầu phải là object JSON.')
     const result = execute(authorized, action, input)
     audit(authorized, action, result.id, input)
