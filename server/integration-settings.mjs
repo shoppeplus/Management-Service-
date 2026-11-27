@@ -226,7 +226,7 @@ export function createIntegrationSettings(
       if (Object.keys(input).some((field) => !fields.includes(field)))
         fail(400, 'INVALID_FIELDS', 'Thông tin TikTok Shop có trường không được hỗ trợ.')
       return {
-        appKey: cleanId(input.appKey, 'TikTok Shop App Key'),
+        appKey: cleanClientKey(input.appKey, 'TikTok Shop App Key'),
         appSecret: cleanSecret(input.appSecret, 'TikTok Shop App Secret'),
         accessToken: cleanSecret(input.accessToken, 'TikTok Shop access token'),
         refreshToken: optionalSecret(input.refreshToken, 'TikTok Shop refresh token'),
@@ -606,13 +606,13 @@ export function createIntegrationSettings(
         if (Object.keys(input).some((field) => !['appKey', 'appSecret'].includes(field)))
           fail(400, 'INVALID_FIELDS', 'TikTok Shop OAuth chỉ nhận App Key và App Secret.')
         credentials = {
-          appKey: cleanId(input.appKey, 'TikTok Shop App Key'),
+          appKey: cleanClientKey(input.appKey, 'TikTok Shop App Key'),
           appSecret: cleanSecret(input.appSecret, 'TikTok Shop App Secret'),
           redirectUri,
         }
         authorizationUrl = new URL('https://services.tiktokshop.com/open/authorize')
         authorizationUrl.search = new URLSearchParams({
-          service_id: credentials.appKey,
+          service_id: process.env.TIKTOK_SHOP_SERVICE_ID || credentials.appKey,
           state: '',
         }).toString()
       }
