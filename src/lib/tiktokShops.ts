@@ -5,6 +5,10 @@ export interface TikTokShopConfig {
   appSecret: string
   accessToken: string
   categoryName?: string
+  accountType?: 'business' | 'shop'
+  loginEmail?: string
+  warehouseName?: string
+  linkedAdAccounts?: string[]
 }
 
 export interface TikTokShopPublicInfo {
@@ -12,6 +16,10 @@ export interface TikTokShopPublicInfo {
   accountName: string
   connected: boolean
   categoryName: string | null
+  accountType: 'business' | 'shop'
+  loginEmail: string | null
+  warehouseName: string | null
+  linkedAdAccounts: string[]
 }
 
 export type AccountRoleTier = 'F0' | 'F1' | 'F2'
@@ -205,6 +213,10 @@ export function listPublicTikTokShops(shops: TikTokShopConfig[]): TikTokShopPubl
     accountName: item.accountName,
     connected: Boolean(item.accessToken && item.accessToken.trim().length > 0),
     categoryName: item.categoryName ?? null,
+    accountType: item.accountType ?? 'shop',
+    loginEmail: item.loginEmail ?? null,
+    warehouseName: item.warehouseName ?? null,
+    linkedAdAccounts: Array.isArray(item.linkedAdAccounts) ? item.linkedAdAccounts : [],
   }))
 }
 
@@ -325,6 +337,10 @@ export function connectTikTokShopAccount(input: {
   shopId: string
   accountName: string
   categoryName: string
+  accountType?: 'business' | 'shop'
+  loginEmail?: string
+  warehouseName?: string
+  linkedAdAccounts?: string[]
   appKey?: string
   appSecret?: string
 }): { shops: TikTokShopConfig[]; added: TikTokShopConfig; signature: string } {
@@ -334,7 +350,7 @@ export function connectTikTokShopAccount(input: {
     .replace(/[^a-z0-9-_]/g, '-')
   const cleanName = input.accountName.trim()
   if (!cleanShopId || !cleanName) {
-    throw new Error('Vui lòng nhập Mã Shop (Shop ID) và Tên hiển thị của TikTok Shop.')
+    throw new Error('Vui lòng nhập Mã tài khoản/Shop và Tên hiển thị.')
   }
   const activeKey = input.appKey?.trim() || '6m1n7b2j7876s'
   const activeSecret = input.appSecret?.trim() || 'ad28cb6cde5180bba414b498ef0715e9d77d415c'
@@ -346,13 +362,18 @@ export function connectTikTokShopAccount(input: {
     JSON.stringify({ shop_id: cleanShopId, account_name: cleanName }),
   )
   const current = loadActiveTikTokShops()
+  const existing = current.find((s) => s.shopId === cleanShopId)
   const newShop: TikTokShopConfig = {
     shopId: cleanShopId,
     accountName: cleanName,
     appKey: activeKey,
     appSecret: activeSecret,
     accessToken: `tt-live-token-${signature.slice(0, 16)}`,
-    categoryName: input.categoryName || 'Phụ kiện',
+    categoryName: input.categoryName || existing?.categoryName || 'Thời trang',
+    accountType: input.accountType ?? existing?.accountType ?? 'shop',
+    loginEmail: input.loginEmail?.trim() || existing?.loginEmail || undefined,
+    warehouseName: input.warehouseName?.trim() || existing?.warehouseName || undefined,
+    linkedAdAccounts: input.linkedAdAccounts ?? existing?.linkedAdAccounts ?? [],
   }
   const next = current.some((s) => s.shopId === cleanShopId)
     ? current.map((s) => (s.shopId === cleanShopId ? newShop : s))

@@ -587,21 +587,46 @@ export function createIntegrationSettings(
       let credentials
       let authorizationUrl
       if (provider === 'tiktok') {
-        if (Object.keys(input).length)
-          fail(400, 'INVALID_FIELDS', 'TikTok Login Kit không nhận thông tin OAuth từ trình duyệt.')
+        if (
+          Object.keys(input).some(
+            (field) => !['clientKey', 'clientSecret', 'scope', 'portalMode'].includes(field),
+          )
+        )
+          fail(400, 'INVALID_FIELDS', 'TikTok OAuth có trường không được hỗ trợ.')
+        const portalMode = input.portalMode === 'business_api' ? 'business_api' : 'login_kit'
+        const scope =
+          typeof input.scope === 'string' && input.scope.trim()
+            ? input.scope.trim()
+            : 'user.info.basic'
         credentials = {
-          clientKey: cleanClientKey(defaults.tiktok?.clientKey, 'TikTok Client Key'),
-          clientSecret: cleanSecret(defaults.tiktok?.clientSecret, 'TikTok Client Secret'),
+          clientKey: cleanClientKey(
+            input.clientKey || defaults.tiktok?.clientKey,
+            'TikTok Client Key',
+          ),
+          clientSecret: cleanSecret(
+            input.clientSecret || defaults.tiktok?.clientSecret,
+            'TikTok Client Secret',
+          ),
           redirectUri,
+          portalMode,
         }
-        authorizationUrl = new URL('https://www.tiktok.com/v2/auth/authorize/')
-        authorizationUrl.search = new URLSearchParams({
-          client_key: credentials.clientKey,
-          response_type: 'code',
-          scope: 'user.info.basic',
-          redirect_uri: redirectUri,
-          state: '',
-        }).toString()
+        if (portalMode === 'business_api') {
+          authorizationUrl = new URL('https://business-api.tiktok.com/portal/auth')
+          authorizationUrl.search = new URLSearchParams({
+            app_id: credentials.clientKey,
+            redirect_uri: redirectUri,
+            state: '',
+          }).toString()
+        } else {
+          authorizationUrl = new URL('https://www.tiktok.com/v2/auth/authorize/')
+          authorizationUrl.search = new URLSearchParams({
+            client_key: credentials.clientKey,
+            response_type: 'code',
+            scope,
+            redirect_uri: redirectUri,
+            state: '',
+          }).toString()
+        }
       } else {
         if (Object.keys(input).some((field) => !['appKey', 'appSecret'].includes(field)))
           fail(400, 'INVALID_FIELDS', 'TikTok Shop OAuth chỉ nhận App Key và App Secret.')
@@ -634,7 +659,7 @@ export function createIntegrationSettings(
         fail(403, 'FORBIDDEN', 'Người bắt đầu kết nối không còn quyền quản lý tích hợp.')
       if (params.get('error'))
         fail(400, 'OAUTH_DENIED', 'Bạn đã hủy hoặc TikTok từ chối yêu cầu kết nối.')
-      const code = params.get('code')
+      const code = params.get('code') || params.get('auth_code')
       if (typeof code !== 'string' || !code.trim() || code.length > 4096 || hasControls(code))
         fail(400, 'OAUTH_CODE_INVALID', 'TikTok không trả về mã ủy quyền hợp lệ.')
       const redirectUri = credentials.redirectUri
@@ -642,53 +667,110 @@ export function createIntegrationSettings(
       let accountName
       let savedCredentials
       if (provider === 'tiktok') {
-        const body = new URLSearchParams({
-          client_key: credentials.clientKey,
-          client_secret: credentials.clientSecret,
-          code,
-          grant_type: 'authorization_code',
-          redirect_uri: redirectUri,
-        })
-        let response
-        try {
-          response = await fetchImpl('https://open.tiktokapis.com/v2/oauth/token/', {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body,
-            ...timeout,
+        if (credentials.portalMode === 'business_api') {
+          let response
+          try {
+            response = await fetchImpl(
+              'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/',
+              {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  app_id: credentials.clientKey,
+                  secret: credentials.clientSecret,
+                  auth_code: code,
+                }),
+                ...timeout,
+              },
+            )
+          } catch {
+            fail(
+              502,
+              'OAUTH_EXCHANGE_FAILED',
+              'Không thể đổi mã OAuth TikTok Business API. Hãy thử lại.',
+            )
+          }
+          const bizJson = await readProviderJson(response, 'OAUTH_EXCHANGE_FAILED')
+          const accessToken = bizJson?.data?.access_token
+          if (typeof accessToken !== 'string' || !accessToken.trim()) {
+            fail(
+              502,
+              'OAUTH_INVALID_RESPONSE',
+              `TikTok Business API từ chối mã auth_code: ${bizJson?.message || 'Không có access_token'}`,
+            )
+          }
+          const advertiserIds = Array.isArray(bizJson?.data?.advertiser_ids)
+            ? bizJson.data.advertiser_ids.map(String)
+            : []
+          const openId = advertiserIds[0] || `biz_${Date.now()}`
+          savedCredentials = {
+            clientKey: credentials.clientKey,
+            clientSecret: credentials.clientSecret,
+            accessToken: cleanSecret(accessToken, 'TikTok access token'),
+            refreshToken: '',
+            openId: cleanClientKey(openId, 'TikTok open ID'),
+            scope: Array.isArray(bizJson?.data?.scope) ? bizJson.data.scope.join(',') : '',
+            accessTokenExpiresAt: '',
+            refreshTokenExpiresAt: '',
+          }
+          accountName = `TikTok Business (${openId})`
+        } else {
+          const body = new URLSearchParams({
+            client_key: credentials.clientKey,
+            client_secret: credentials.clientSecret,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: redirectUri,
           })
-        } catch {
-          fail(502, 'OAUTH_EXCHANGE_FAILED', 'Không thể đổi mã OAuth TikTok. Hãy thử kết nối lại.')
+          let response
+          try {
+            response = await fetchImpl('https://open.tiktokapis.com/v2/oauth/token/', {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body,
+              ...timeout,
+            })
+          } catch {
+            fail(
+              502,
+              'OAUTH_EXCHANGE_FAILED',
+              'Không thể đổi mã OAuth TikTok. Hãy thử kết nối lại.',
+            )
+          }
+          const token = await readProviderJson(response, 'OAUTH_EXCHANGE_FAILED')
+          if (
+            token?.error ||
+            typeof token?.access_token !== 'string' ||
+            typeof token?.refresh_token !== 'string' ||
+            typeof token?.open_id !== 'string' ||
+            !Number.isFinite(token?.expires_in) ||
+            !Number.isFinite(token?.refresh_expires_in)
+          )
+            fail(502, 'OAUTH_INVALID_RESPONSE', 'TikTok trả về thông tin tài khoản không hợp lệ.')
+          const openId = cleanClientKey(token.open_id, 'TikTok open ID')
+          savedCredentials = {
+            clientKey: credentials.clientKey,
+            clientSecret: credentials.clientSecret,
+            accessToken: cleanSecret(token.access_token, 'TikTok access token'),
+            refreshToken: cleanSecret(token.refresh_token, 'TikTok refresh token'),
+            openId,
+            scope: typeof token.scope === 'string' ? token.scope.slice(0, 1000) : '',
+            accessTokenExpiresAt: new Date(
+              now().getTime() + Number(token.expires_in) * 1000,
+            ).toISOString(),
+            refreshTokenExpiresAt: new Date(
+              now().getTime() + Number(token.refresh_expires_in) * 1000,
+            ).toISOString(),
+          }
+          const accountSuffix = openId.replace(/[^A-Za-z0-9]/g, '').slice(-6)
+          accountName = `TikTok account ${accountSuffix}`
         }
-        const token = await readProviderJson(response, 'OAUTH_EXCHANGE_FAILED')
-        if (
-          token?.error ||
-          typeof token?.access_token !== 'string' ||
-          typeof token?.refresh_token !== 'string' ||
-          typeof token?.open_id !== 'string' ||
-          !Number.isFinite(token?.expires_in) ||
-          !Number.isFinite(token?.refresh_expires_in)
-        )
-          fail(502, 'OAUTH_INVALID_RESPONSE', 'TikTok trả về thông tin tài khoản không hợp lệ.')
-        const openId = cleanClientKey(token.open_id, 'TikTok open ID')
-        savedCredentials = {
-          ...credentials,
-          accessToken: cleanSecret(token.access_token, 'TikTok access token'),
-          refreshToken: cleanSecret(token.refresh_token, 'TikTok refresh token'),
-          openId,
-          scope: typeof token.scope === 'string' ? token.scope.slice(0, 1000) : '',
-          accessTokenExpiresAt: new Date(
-            now().getTime() + Number(token.expires_in) * 1000,
-          ).toISOString(),
-          refreshTokenExpiresAt: new Date(
-            now().getTime() + Number(token.refresh_expires_in) * 1000,
-          ).toISOString(),
-        }
-        const accountSuffix = openId.replace(/[^A-Za-z0-9]/g, '').slice(-6)
-        accountName = `TikTok account ${accountSuffix}`
       } else {
         const tokenUrl = new URL('https://auth.tiktok-shops.com/api/v2/token/get')
         tokenUrl.search = new URLSearchParams({
