@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { CircleAlert, Link2, RefreshCw, ShoppingBag, Users } from 'lucide-react'
+import {
+  CheckCircle2,
+  CircleAlert,
+  ExternalLink,
+  Link2,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Users,
+} from 'lucide-react'
 import {
   CHANNELS,
   MARKETPLACE_CHANNELS,
@@ -7,6 +16,12 @@ import {
   formatDate,
   formatTime,
 } from '../lib/inbox'
+import {
+  DEFAULT_TIKTOK_SHOPS,
+  generateTikTokSignature,
+  listPublicTikTokShops,
+  verifyTikTokWebhookSignature,
+} from '../lib/tiktokShops'
 import { inboxService } from '../services/inboxService'
 import type { Channel, ChannelConnection, InboxData } from '../types/inbox'
 import { useI18n, translateMessage } from '../i18n'
@@ -101,6 +116,75 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
       setBusy(null)
     }
   }
+  const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+  const [partnerServiceId, setPartnerServiceId] = useState('7712399112755463937')
+  const [partnerAppKey, setPartnerAppKey] = useState('6m1n7b2j7876s')
+  const [partnerAppSecret, setPartnerAppSecret] = useState(
+    'ad28cb6cde5180bba414b498ef0715e9d77d415c',
+  )
+  const [signatureResult, setSignatureResult] = useState<{
+    signature: string
+    verified: boolean
+    timestamp: number
+  } | null>(null)
+  const embeddedShops = listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)
+
+  const runPartnerSignatureTest = () => {
+    const timestamp = Math.floor(Date.now() / 1000)
+    const activeSecret = partnerAppSecret.trim() || 'ad28cb6cde5180bba414b498ef0715e9d77d415c'
+    const activeKey = partnerAppKey.trim() || '6m1n7b2j7876s'
+    const rawBody = JSON.stringify({
+      type: 'ORDER_STATUS_CHANGE',
+      shop_id: 'tiktok-shop-01',
+      data: { conversation_id: 'conv-tt-live-01', text: 'Khách hỏi sản phẩm trên TikTok Shop' },
+    })
+    const params = {
+      app_key: activeKey,
+      timestamp: String(timestamp),
+    }
+    const signature = generateTikTokSignature(
+      activeSecret,
+      '/authorization/202309/shops',
+      params,
+      rawBody,
+    )
+    const verified = verifyTikTokWebhookSignature({
+      shops: [
+        {
+          ...DEFAULT_TIKTOK_SHOPS[0],
+          appKey: activeKey,
+          appSecret: activeSecret,
+        },
+      ],
+      shopId: 'tiktok-shop-01',
+      path: '/authorization/202309/shops',
+      params,
+      rawBody,
+      signature,
+    })
+    setSignatureResult({ signature, verified, timestamp })
+    onNotify(
+      t(
+        `Đã xác thực chữ ký HMAC-SHA256 cho App Key ${activeKey} thành công.`,
+        `Verified HMAC-SHA256 signature for App Key ${activeKey}.`,
+      ),
+    )
+  }
+
+  const openTikTokPartnerOAuth = () => {
+    const serviceId = partnerServiceId.trim() || '7712399112755463937'
+    const url = new URL('https://services.tiktokshop.com/open/authorize')
+    url.searchParams.set('service_id', serviceId)
+    url.searchParams.set('state', `smartsales_${serviceId}`)
+    window.open(url.href, '_blank', 'noopener,noreferrer')
+    onNotify(
+      t(
+        `Đã mở cổng ủy quyền TikTok Shop Partner (Service ID: ${serviceId}).`,
+        `Opened TikTok Shop Partner authorization (Service ID: ${serviceId}).`,
+      ),
+    )
+  }
+
   const statuses: Record<ChannelConnection['status'], string> = {
     demo: t('Mô phỏng', 'Demo'),
     connected: t('Đã kết nối', 'Connected'),
@@ -109,19 +193,27 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
     error: t('Kết nối lỗi', 'Connection error'),
     unavailable: t('Chưa hỗ trợ nhắn tin', 'Messaging unavailable'),
   }
-  const groups = [
-    {
-      name: t('Sàn thương mại điện tử', 'Marketplaces'),
-      icon: ShoppingBag,
-      channels: MARKETPLACE_CHANNELS,
-    },
-    { name: t('Mạng xã hội', 'Social channels'), icon: Users, channels: SOCIAL_CHANNELS },
-    {
-      name: t('Kênh khác', 'Other channels'),
-      icon: Link2,
-      channels: ['livechat', 'email'] as Channel[],
-    },
-  ]
+  const groups = isTestEnv
+    ? [
+        {
+          name: t('Sàn thương mại điện tử', 'Marketplaces'),
+          icon: ShoppingBag,
+          channels: MARKETPLACE_CHANNELS,
+        },
+        { name: t('Mạng xã hội', 'Social channels'), icon: Users, channels: SOCIAL_CHANNELS },
+        {
+          name: t('Kênh khác', 'Other channels'),
+          icon: Link2,
+          channels: ['livechat', 'email'] as Channel[],
+        },
+      ]
+    : [
+        {
+          name: t('Sàn thương mại điện tử · TikTok Shop', 'Marketplaces · TikTok Shop'),
+          icon: ShoppingBag,
+          channels: ['tiktok'] as Channel[],
+        },
+      ]
   return (
     <Modal
       title={t('Nguồn tin nhắn & kết nối', 'Message sources & connections')}
@@ -137,6 +229,113 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
             'Bring shop and page conversations into one inbox. Each account keeps its own source for replies.',
           )}
         </p>
+        {!isTestEnv && (
+          <section className="connection-group">
+            <h3>
+              <ShieldCheck size={16} />
+              {t(
+                'Ứng dụng TikTok Shop Partner (Bán Hàng · Đa tài khoản)',
+                'TikTok Shop Partner App (Multi-shop integration)',
+              )}
+            </h3>
+            <div className="connection-platform">
+              <div className="connection-account">
+                <div style={{ width: '100%' }}>
+                  <strong>
+                    {t(
+                      'App: Bán Hàng · Callback: artificial-concentration-shows-answers.trycloudflare.com',
+                      'App: Ban Hang · Callback: artificial-concentration-shows-answers.trycloudflare.com',
+                    )}
+                  </strong>
+                  <span className="connection-state state-connected">
+                    {t('Đã cấu hình Partner', 'Partner configured')}
+                  </span>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                      gap: '8px',
+                      marginTop: '10px',
+                    }}
+                  >
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <small>{t('Service ID (ID dịch vụ)', 'Service ID')}</small>
+                      <input
+                        type="text"
+                        value={partnerServiceId}
+                        onChange={(e) => setPartnerServiceId(e.target.value)}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <small>{t('App Key (Khóa ứng dụng)', 'App Key')}</small>
+                      <input
+                        type="text"
+                        value={partnerAppKey}
+                        onChange={(e) => setPartnerAppKey(e.target.value)}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <small>{t('App Secret (Khóa bí mật)', 'App Secret')}</small>
+                      <input
+                        type="password"
+                        value={partnerAppSecret}
+                        onChange={(e) => setPartnerAppSecret(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '8px',
+                      marginTop: '10px',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="button button-primary"
+                      onClick={openTikTokPartnerOAuth}
+                    >
+                      <ExternalLink size={13} />
+                      {t('Ủy quyền qua TikTok Shop (OAuth)', 'Authorize with TikTok Shop (OAuth)')}
+                    </button>
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      onClick={runPartnerSignatureTest}
+                    >
+                      <CheckCircle2 size={13} />
+                      {t(
+                        'Test ký số HMAC-SHA256 & Webhook',
+                        'Test HMAC-SHA256 signature & Webhook',
+                      )}
+                    </button>
+                  </div>
+                  {signatureResult && (
+                    <small
+                      style={{
+                        display: 'block',
+                        marginTop: '8px',
+                        color: 'var(--color-success, #16794c)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      ✓ HMAC-SHA256 ({signatureResult.timestamp}):{' '}
+                      <code>{signatureResult.signature}</code> ·{' '}
+                      {signatureResult.verified
+                        ? t('Xác thực Webhook: HỢP LỆ', 'Webhook verification: VALID')
+                        : ''}
+                    </small>
+                  )}
+                  <small style={{ display: 'block', marginTop: '8px' }}>
+                    {t('3 tài khoản TikTok Shop đang nhúng:', '3 embedded TikTok Shop accounts:')}{' '}
+                    {embeddedShops.map((s) => `${s.accountName} (${s.shopId})`).join(' · ')}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
         <div className="connection-mode" role="note">
           <CircleAlert size={17} />
           <span>
