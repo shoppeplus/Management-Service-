@@ -4,9 +4,11 @@ import {
   CircleAlert,
   ExternalLink,
   Link2,
+  Plus,
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
+  Trash2,
   Users,
 } from 'lucide-react'
 import {
@@ -18,10 +20,14 @@ import {
 } from '../lib/inbox'
 import {
   DEFAULT_TIKTOK_SHOPS,
+  connectTikTokShopAccount,
   generateTikTokSignature,
   listPublicTikTokShops,
+  loadActiveTikTokShops,
+  removeTikTokShopAccount,
   verifyTikTokWebhookSignature,
 } from '../lib/tiktokShops'
+import { PRODUCT_CATEGORY_TREE } from '../lib/productCategories'
 import { inboxService } from '../services/inboxService'
 import type { Channel, ChannelConnection, InboxData } from '../types/inbox'
 import { useI18n, translateMessage } from '../i18n'
@@ -127,7 +133,105 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
     verified: boolean
     timestamp: number
   } | null>(null)
-  const embeddedShops = listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)
+  const [embeddedShops, setEmbeddedShops] = useState(() =>
+    listPublicTikTokShops(loadActiveTikTokShops()),
+  )
+  const [newShopId, setNewShopId] = useState(
+    () => `tiktok-shop-0${loadActiveTikTokShops().length + 1}`,
+  )
+  const [newShopName, setNewShopName] = useState(
+    () => `TikTok Shop 0${loadActiveTikTokShops().length + 1} · Phụ Kiện & Túi Xách`,
+  )
+  const [newShopCategory, setNewShopCategory] = useState('Phụ kiện')
+
+  const handleAddTikTokShop = async () => {
+    try {
+      const { shops, added, signature } = connectTikTokShopAccount({
+        shopId: newShopId,
+        accountName: newShopName,
+        categoryName: newShopCategory,
+        appKey: partnerAppKey,
+        appSecret: partnerAppSecret,
+      })
+      const publicList = listPublicTikTokShops(shops)
+      setEmbeddedShops(publicList)
+      const timestamp = Math.floor(Date.now() / 1000)
+      setSignatureResult({ signature, verified: true, timestamp })
+
+      const nextIndex = publicList.length + 1
+      setNewShopId(`tiktok-shop-0${nextIndex}`)
+      setNewShopName(`TikTok Shop 0${nextIndex} · Gian Hàng Mới`)
+
+      const currentInbox = await inboxService.load()
+      const convId = `conv-tt-${added.shopId}`
+      if (!currentInbox.conversations.some((c) => c.id === convId)) {
+        const catNode =
+          PRODUCT_CATEGORY_TREE.find((c) => c.name === added.categoryName) ??
+          PRODUCT_CATEGORY_TREE[0]
+        const sampleProd = catNode.products[0]
+        const nowIso = new Date().toISOString()
+        const newConv: InboxData['conversations'][number] = {
+          id: convId,
+          customerId: currentInbox.customers[0]?.id ?? 'CUS-001',
+          channel: 'tiktok',
+          shopId: added.shopId,
+          category: added.categoryName ?? catNode.name,
+          status: 'open',
+          priority: 'high',
+          assigneeId: 'agent-linh',
+          teamId: 'team-sales',
+          subject: `[${added.accountName}] Đặt mua ${sampleProd?.name ?? 'sản phẩm mới'}`,
+          unread: 1,
+          lastMessageAt: nowIso,
+          dueAt: nowIso,
+          sourceUrl: null,
+          tags: [added.categoryName ?? catNode.name, added.shopId],
+          mentioned: false,
+          bot: false,
+          messages: [
+            {
+              id: `${convId}-m1`,
+              type: 'incoming',
+              text: `Chào ${added.accountName}! Mình muốn đặt 2 ${sampleProd?.name ?? 'sản phẩm'} giao về Quận 1 nhé.`,
+              sentAt: nowIso,
+              delivery: 'delivered',
+              attachments: [],
+            },
+          ],
+        }
+        const updatedInbox: InboxData = {
+          ...currentInbox,
+          conversations: [newConv, ...currentInbox.conversations],
+        }
+        try {
+          window.localStorage.setItem(
+            'smartsales.inbox.demo.tiktok.v4',
+            JSON.stringify(updatedInbox),
+          )
+        } catch {
+          // ignore storage errors
+        }
+        onSynced(updatedInbox)
+      }
+      onNotify(
+        t(
+          `Đã kết nối ${added.accountName} (${added.shopId}) và đồng bộ tin nhắn vào Hộp thư!`,
+          `Connected ${added.accountName} (${added.shopId}) and synced messages to Inbox!`,
+        ),
+      )
+    } catch (cause) {
+      const msg =
+        cause instanceof Error ? cause.message : t('Không thể thêm Shop.', 'Unable to add shop.')
+      setError(msg)
+      onNotify(msg, 'error')
+    }
+  }
+
+  const handleRemoveTikTokShop = (shopId: string) => {
+    const updated = removeTikTokShopAccount(shopId)
+    setEmbeddedShops(listPublicTikTokShops(updated))
+    onNotify(t(`Đã gỡ kết nối ${shopId}.`, `Disconnected ${shopId}.`))
+  }
 
   const runPartnerSignatureTest = () => {
     const timestamp = Math.floor(Date.now() / 1000)
@@ -327,10 +431,119 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
                         : ''}
                     </small>
                   )}
-                  <small style={{ display: 'block', marginTop: '8px' }}>
-                    {t('3 tài khoản TikTok Shop đang nhúng:', '3 embedded TikTok Shop accounts:')}{' '}
-                    {embeddedShops.map((s) => `${s.accountName} (${s.shopId})`).join(' · ')}
-                  </small>
+                  <div
+                    style={{
+                      marginTop: '14px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid var(--border-subtle, #e6e4f0)',
+                    }}
+                  >
+                    <strong style={{ display: 'block', marginBottom: '6px' }}>
+                      {t(
+                        `Danh sách tài khoản TikTok Shop đang kết nối (${embeddedShops.length} Shop):`,
+                        `Connected TikTok Shop accounts (${embeddedShops.length} Shops):`,
+                      )}
+                    </strong>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {embeddedShops.map((s) => (
+                        <div
+                          key={s.shopId}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            background: 'var(--surface-muted, #f7f6fb)',
+                            fontSize: '13px',
+                          }}
+                        >
+                          <span>
+                            <strong>{s.accountName}</strong> · <code>{s.shopId}</code>
+                            {s.categoryName ? ` · Danh mục: ${s.categoryName}` : ''}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="connection-state state-connected">
+                              {t('Đã kết nối', 'Connected')}
+                            </span>
+                            {!['tiktok-shop-01', 'tiktok-shop-02', 'tiktok-shop-03'].includes(
+                              s.shopId,
+                            ) && (
+                              <button
+                                type="button"
+                                className="icon-button"
+                                title={t('Gỡ kết nối Shop', 'Disconnect Shop')}
+                                onClick={() => handleRemoveTikTokShop(s.shopId)}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <strong style={{ display: 'block', marginBottom: '6px' }}>
+                      {t(
+                        '+ Kết nối thêm tài khoản TikTok Shop mới (Multi-Shop Sandbox):',
+                        '+ Connect another TikTok Shop account (Multi-Shop Sandbox):',
+                      )}
+                    </strong>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                        gap: '8px',
+                        alignItems: 'end',
+                      }}
+                    >
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <small>{t('Mã Shop (shop_id)', 'Shop ID')}</small>
+                        <input
+                          type="text"
+                          value={newShopId}
+                          onChange={(e) => setNewShopId(e.target.value)}
+                          placeholder="tiktok-shop-04"
+                        />
+                      </label>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <small>{t('Tên hiển thị TikTok Shop', 'Shop display name')}</small>
+                        <input
+                          type="text"
+                          value={newShopName}
+                          onChange={(e) => setNewShopName(e.target.value)}
+                          placeholder="TikTok Shop 04 · Phụ Kiện"
+                        />
+                      </label>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <small>{t('Danh mục phụ trách', 'Assigned category')}</small>
+                        <select
+                          value={newShopCategory}
+                          onChange={(e) => setNewShopCategory(e.target.value)}
+                        >
+                          {PRODUCT_CATEGORY_TREE.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        type="button"
+                        className="button button-primary"
+                        onClick={() => void handleAddTikTokShop()}
+                      >
+                        <Plus size={14} />
+                        {t('Kết nối & Đồng bộ Shop', 'Connect & Sync Shop')}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

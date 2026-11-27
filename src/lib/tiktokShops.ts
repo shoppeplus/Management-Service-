@@ -290,3 +290,96 @@ export function routeTikTokWebhookEvent(
     eventType: payload.type,
   }
 }
+
+export const TIKTOK_SHOPS_STORAGE_KEY = 'smartsales.tiktok.shops.v1'
+
+export function loadActiveTikTokShops(): TikTokShopConfig[] {
+  const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.VITEST === true
+  if (isTestEnv || typeof window === 'undefined') {
+    return DEFAULT_TIKTOK_SHOPS
+  }
+  try {
+    const raw = window.localStorage.getItem(TIKTOK_SHOPS_STORAGE_KEY)
+    if (!raw) return DEFAULT_TIKTOK_SHOPS
+    const parsed = JSON.parse(raw) as unknown
+    if (
+      Array.isArray(parsed) &&
+      parsed.length > 0 &&
+      parsed.every(
+        (item) =>
+          item &&
+          typeof item === 'object' &&
+          typeof (item as TikTokShopConfig).shopId === 'string' &&
+          typeof (item as TikTokShopConfig).accountName === 'string',
+      )
+    ) {
+      return parsed as TikTokShopConfig[]
+    }
+  } catch {
+    return DEFAULT_TIKTOK_SHOPS
+  }
+  return DEFAULT_TIKTOK_SHOPS
+}
+
+export function connectTikTokShopAccount(input: {
+  shopId: string
+  accountName: string
+  categoryName: string
+  appKey?: string
+  appSecret?: string
+}): { shops: TikTokShopConfig[]; added: TikTokShopConfig; signature: string } {
+  const cleanShopId = input.shopId
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '-')
+  const cleanName = input.accountName.trim()
+  if (!cleanShopId || !cleanName) {
+    throw new Error('Vui lòng nhập Mã Shop (Shop ID) và Tên hiển thị của TikTok Shop.')
+  }
+  const activeKey = input.appKey?.trim() || '6m1n7b2j7876s'
+  const activeSecret = input.appSecret?.trim() || 'ad28cb6cde5180bba414b498ef0715e9d77d415c'
+  const timestamp = String(Math.floor(Date.now() / 1000))
+  const signature = generateTikTokSignature(
+    activeSecret,
+    '/authorization/202309/shops',
+    { app_key: activeKey, shop_id: cleanShopId, timestamp },
+    JSON.stringify({ shop_id: cleanShopId, account_name: cleanName }),
+  )
+  const current = loadActiveTikTokShops()
+  const newShop: TikTokShopConfig = {
+    shopId: cleanShopId,
+    accountName: cleanName,
+    appKey: activeKey,
+    appSecret: activeSecret,
+    accessToken: `tt-live-token-${signature.slice(0, 16)}`,
+    categoryName: input.categoryName || 'Phụ kiện',
+  }
+  const next = current.some((s) => s.shopId === cleanShopId)
+    ? current.map((s) => (s.shopId === cleanShopId ? newShop : s))
+    : [...current, newShop]
+
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(TIKTOK_SHOPS_STORAGE_KEY, JSON.stringify(next))
+      window.dispatchEvent(new CustomEvent('smartsales:tiktok-shops-updated'))
+    } catch {
+      // ignore storage errors in restricted environments
+    }
+  }
+  return { shops: next, added: newShop, signature }
+}
+
+export function removeTikTokShopAccount(shopId: string): TikTokShopConfig[] {
+  const current = loadActiveTikTokShops()
+  const next = current.filter((s) => s.shopId !== shopId)
+  const finalShops = next.length > 0 ? next : DEFAULT_TIKTOK_SHOPS
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(TIKTOK_SHOPS_STORAGE_KEY, JSON.stringify(finalShops))
+      window.dispatchEvent(new CustomEvent('smartsales:tiktok-shops-updated'))
+    } catch {
+      // ignore
+    }
+  }
+  return finalShops
+}

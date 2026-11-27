@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Conversation, InboxData } from '../types/inbox'
 import { CHANNELS, STATUS_LABELS, VIEW_LABELS, formatTime } from '../lib/inbox'
 import type { InboxFilters } from '../lib/inbox'
-import { DEFAULT_TIKTOK_SHOPS, listPublicTikTokShops } from '../lib/tiktokShops'
+import { listPublicTikTokShops, loadActiveTikTokShops } from '../lib/tiktokShops'
 import { ConversationCategoryBadge, InboxCategoryDrawer } from './InboxCategoryDrawer'
 import { Avatar } from './shared'
 import { useI18n } from '../i18n'
@@ -30,7 +30,17 @@ export function ConversationList({
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false)
   const currentCategory = filters.category ?? 'all'
   const currentShopId = filters.shopId ?? 'all'
-  const tiktokShops = listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)
+  const [tiktokShops, setTiktokShops] = useState(() =>
+    listPublicTikTokShops(loadActiveTikTokShops()),
+  )
+
+  useEffect(() => {
+    const syncShops = () => {
+      setTiktokShops(listPublicTikTokShops(loadActiveTikTokShops()))
+    }
+    window.addEventListener('smartsales:tiktok-shops-updated', syncShops)
+    return () => window.removeEventListener('smartsales:tiktok-shops-updated', syncShops)
+  }, [])
 
   useEffect(() => {
     const handleExternalFilter = (event: Event) => {
