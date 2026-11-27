@@ -206,6 +206,114 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
     )
   }
 
+  const handlePullTunnelWebhooks = async () => {
+    try {
+      const res = await fetch('/api/v1/webhooks/tiktokshop', {
+        headers: { Accept: 'application/json' },
+      })
+      if (!res.ok) {
+        throw new Error(
+          t(
+            'Hãy bật "npm run server:inventory" ở cổng 3002 để hứng Webhook thật từ Cloudflare Tunnel.',
+            'Please start "npm run server:inventory" on port 3002 to receive live Cloudflare Tunnel webhooks.',
+          ),
+        )
+      }
+      const body = (await res.json()) as {
+        events?: {
+          id: string
+          receivedAt: string
+          type: string
+          shopId: string
+          customerName: string
+          text: string
+        }[]
+      }
+      const events = Array.isArray(body.events) ? body.events : []
+      if (events.length === 0) {
+        onNotify(
+          t(
+            'Cổng Webhook (3002) đang hoạt động tốt, hiện chưa có gói tin mới nào bắn vào Tunnel.',
+            'Webhook server (3002) is active; no new webhook events received yet.',
+          ),
+        )
+        return
+      }
+      const currentInbox = await inboxService.load()
+      let addedCount = 0
+      const newConvs: InboxData['conversations'] = []
+      for (const ev of events) {
+        const convId = `conv-${ev.id}`
+        if (currentInbox.conversations.some((c) => c.id === convId)) continue
+        const targetShop =
+          embeddedShops.find((s) => s.shopId === ev.shopId) ??
+          embeddedShops[0] ??
+          listPublicTikTokShops(DEFAULT_TIKTOK_SHOPS)[0]
+        const shopCategory = targetShop.categoryName ?? 'Mỹ phẩm'
+        newConvs.push({
+          id: convId,
+          customerId: currentInbox.customers[0]?.id ?? 'CUS-001',
+          channel: 'tiktok',
+          shopId: targetShop.shopId,
+          category: shopCategory,
+          status: 'open',
+          priority: 'high',
+          assigneeId: 'agent-linh',
+          teamId: 'team-sales',
+          subject: `[Webhook Live · ${targetShop.accountName.replace('TikTok ', '')}] ${ev.customerName}`,
+          unread: 1,
+          lastMessageAt: ev.receivedAt,
+          dueAt: ev.receivedAt,
+          sourceUrl: null,
+          tags: [shopCategory, targetShop.shopId, 'Webhook Live'],
+          mentioned: false,
+          bot: false,
+          messages: [
+            {
+              id: `${convId}-m1`,
+              type: 'incoming',
+              text: ev.text,
+              sentAt: ev.receivedAt,
+              delivery: 'delivered',
+              attachments: [],
+            },
+          ],
+        })
+        addedCount++
+      }
+      if (addedCount > 0) {
+        const updatedInbox: InboxData = {
+          ...currentInbox,
+          conversations: [...newConvs, ...currentInbox.conversations],
+        }
+        try {
+          window.localStorage.setItem(
+            'smartsales.inbox.demo.tiktok.v4',
+            JSON.stringify(updatedInbox),
+          )
+        } catch {
+          // ignore
+        }
+        onSynced(updatedInbox)
+      }
+      onNotify(
+        t(
+          `Đã kéo thành công ${addedCount} tin nhắn Webhook thật từ Cloudflare Tunnel vào Hộp thư!`,
+          `Pulled ${addedCount} live Webhook messages from Cloudflare Tunnel into Inbox!`,
+        ),
+      )
+    } catch (cause) {
+      const msg =
+        cause instanceof Error
+          ? cause.message
+          : t(
+              'Hãy chạy thêm "npm run server:inventory" để hứng Webhook thật từ Cloudflare Tunnel.',
+              'Run "npm run server:inventory" to receive live webhooks from Cloudflare Tunnel.',
+            )
+      onNotify(msg, 'error')
+    }
+  }
+
   const handleAddTikTokShop = async () => {
     try {
       const { shops, added, signature } = connectTikTokShopAccount({
@@ -672,6 +780,14 @@ export default function ChannelConnections({ mode, onClose, onSynced, onNotify }
                         onClick={() => void handleSimulateIncomingMessage()}
                       >
                         {t('Bắn tin nhắn vào Hộp thư', 'Send message to Inbox')}
+                      </button>
+                      <button
+                        type="button"
+                        className="button button-secondary"
+                        onClick={() => void handlePullTunnelWebhooks()}
+                      >
+                        <RefreshCw size={13} />
+                        {t('Kéo Webhook thật từ Tunnel', 'Pull live Tunnel Webhooks')}
                       </button>
                     </div>
                   </div>

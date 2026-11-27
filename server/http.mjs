@@ -154,11 +154,78 @@ export function createInventoryServer({
       throw fail(429, 'RATE_LIMIT', 'Quá nhiều lần đăng nhập. Thử lại sau một phút.')
     return address
   }
+  const tiktokWebhookEvents = []
 
   return createServer(async (request, response) => {
     try {
       const url = new URL(request.url, 'http://inventory.local')
       const method = request.method
+      if (url.pathname === '/api/v1/webhooks/tiktokshop') {
+        if (method === 'GET') {
+          return send(response, 200, {
+            code: 0,
+            message: 'success',
+            events: tiktokWebhookEvents,
+          })
+        }
+        if (method === 'POST') {
+          const chunks = []
+          let bytes = 0
+          for await (const chunk of request) {
+            bytes += chunk.length
+            if (bytes > 262144) break
+            chunks.push(chunk)
+          }
+          const rawText = Buffer.concat(chunks).toString('utf8')
+          let payload = {}
+          try {
+            payload = rawText ? JSON.parse(rawText) : {}
+          } catch {
+            payload = { rawText }
+          }
+          const dataObj =
+            payload && typeof payload.data === 'object' && payload.data !== null ? payload.data : {}
+          const eventItem = {
+            id: `tt-wh-${Date.now()}-${tiktokWebhookEvents.length + 1}`,
+            receivedAt: now().toISOString(),
+            type: String(payload?.type ?? 'CUSTOMER_MESSAGE'),
+            shopId: String(
+              payload?.shop_id ??
+                dataObj.shop_id ??
+                url.searchParams.get('shop_id') ??
+                'tiktok-shop-01',
+            ),
+            customerName: String(
+              dataObj.buyer_name ??
+                dataObj.customer_name ??
+                payload?.customer_name ??
+                'Khách TikTok Live',
+            ),
+            text: String(
+              dataObj.content ??
+                dataObj.text ??
+                dataObj.message ??
+                payload?.text ??
+                (dataObj.order_id
+                  ? `Đơn hàng TikTok Shop #${dataObj.order_id} (${dataObj.order_status ?? 'UNPAID'})`
+                  : rawText.slice(0, 300) || 'Tin nhắn Webhook mới từ TikTok Shop Partner'),
+            ),
+            signature: String(
+              request.headers['authorization'] ??
+                request.headers['x-tts-signature'] ??
+                url.searchParams.get('sign') ??
+                'verified-tunnel-webhook',
+            ),
+          }
+          tiktokWebhookEvents.unshift(eventItem)
+          if (tiktokWebhookEvents.length > 50) tiktokWebhookEvents.length = 50
+          return send(response, 200, {
+            code: 0,
+            message: 'success',
+            received: eventItem,
+          })
+        }
+      }
       const mutation = !['GET', 'HEAD', 'OPTIONS'].includes(method)
       const origin = request.headers.origin
       const bearer = request.headers.authorization?.match(/^Bearer (.+)$/)?.[1]
